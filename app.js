@@ -659,6 +659,7 @@ function hideAddTypeModal() {
 }
 
 // Show item detail modal (the "bio" view)
+// Show item detail modal (the "bio" view) - FIXED
 function showItemDetail(itemId) {
     selectedItemId = itemId;
     const item = currentStockData.items.find(i => i.id === itemId);
@@ -667,12 +668,12 @@ function showItemDetail(itemId) {
     if (!item || !type) return;
 
     document.getElementById("detail-item-name").textContent = item.name;
-    document.getElementById("detail-qty").textContent = item.quantity;
+    document.getElementById("detail-qty").textContent = item.quantity || "—";
     document.getElementById("detail-status").textContent = item.status || "Good";
     document.getElementById("detail-expiry").textContent = item.expiry || "No expiry";
     document.getElementById("detail-location").textContent = item.location || "Not set";
 
-    // Render custom fields with values
+    // Render custom fields with values - FIXED
     const customContainer = document.getElementById("detail-custom-fields");
     customContainer.innerHTML = "<h3 class='text-lg font-medium mb-4'>Custom Fields</h3>";
 
@@ -680,23 +681,42 @@ function showItemDetail(itemId) {
         type.customFields.forEach(field => {
             const div = document.createElement("div");
             div.className = "mb-6 bg-zinc-950 p-5 rounded-3xl";
-            div.innerHTML = `<p class="text-emerald-300 mb-2">${field.name}</p>`;
 
-            if (field.subFields && field.subFields.length > 0) {
-                let subHtml = '';
-                field.subFields.forEach(sub => {
-                    const val = item.customValues && item.customValues[field.name] && item.customValues[field.name][sub] 
-                                ? item.customValues[field.name][sub] 
-                                : "—";
-                    subHtml += `<div class="flex justify-between py-1"><span class="text-zinc-400">${sub}</span><span>${val}</span></div>`;
-                });
-                div.innerHTML += subHtml;
-            } else {
-                const val = item.customValues && item.customValues[field.name] 
-                            ? item.customValues[field.name] 
-                            : "—";
-                div.innerHTML += `<p class="text-lg">${val}</p>`;
+            let content = `<p class="text-emerald-300 mb-3 font-medium">${field.name}</p>`;
+
+            const fieldData = item.customValues ? item.customValues[field.name] : null;
+
+            // Show Main Value
+            let mainValue = "—";
+            if (fieldData) {
+                if (typeof fieldData === 'string') {
+                    mainValue = fieldData;
+                } else if (typeof fieldData === 'object' && fieldData.main) {
+                    mainValue = fieldData.main;
+                } else if (typeof fieldData === 'object') {
+                    mainValue = "—"; // has only subfields
+                }
             }
+            content += `<div class="mb-4"><span class="text-xs text-zinc-500">Main Value:</span><br><span class="text-lg">${mainValue}</span></div>`;
+
+            // Show Sub-fields if they exist
+            if (field.subFields && field.subFields.length > 0) {
+                content += `<div class="pl-4 border-l-2 border-zinc-700 space-y-3">`;
+                field.subFields.forEach(sub => {
+                    let subVal = "—";
+                    if (fieldData && typeof fieldData === 'object') {
+                        subVal = fieldData[sub] || "—";
+                    }
+                    content += `
+                        <div class="flex justify-between">
+                            <span class="text-zinc-400">${sub}</span>
+                            <span class="text-right">${subVal}</span>
+                        </div>`;
+                });
+                content += `</div>`;
+            }
+
+            div.innerHTML = content;
             customContainer.appendChild(div);
         });
     } else {
