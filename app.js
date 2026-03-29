@@ -105,6 +105,7 @@ function createNewType() {
     });
 }
 
+
 function selectType(id) {
     selectedTypeId = id;
     const type = currentStockData.types.find(t => t.id === id);
@@ -687,28 +688,45 @@ async function loadFromRepo() {
 function createNewType() {
     const name = document.getElementById("type-name-input").value.trim();
     if (!name) {
-        alert("Type name is required");
+        alert("Please enter a stock type name");
         return;
     }
-    
+
     currentStockData.types.push({
         id: Date.now(),
         name: name,
-        customFields: []   // keep for backward compatibility
+        customFields: []
     });
-    
+
     currentStockData.lastUpdated = Date.now();
     saveLocalData(currentStockData).then(() => {
         renderTypes();
         updateNotifier();
         hideAddTypeModal();
+    }).catch(err => {
+        console.error("Save error:", err);
+        alert("Failed to save new type");
     });
 }
 
+// === ADD THESE TWO FUNCTIONS ===
+function showAddTypeModal() {
+    const modal = document.getElementById("add-type-modal");
+    if (modal) {
+        modal.classList.remove("hidden");
+        const input = document.getElementById("type-name-input");
+        if (input) input.focus();
+    } else {
+        console.error("Add Type Modal not found in HTML");
+    }
+}
 
 function hideAddTypeModal() {
-    document.getElementById("add-type-modal").classList.add("hidden");
-    document.getElementById("type-name-input").value = "";
+    const modal = document.getElementById("add-type-modal");
+    if (modal) modal.classList.add("hidden");
+    
+    const input = document.getElementById("type-name-input");
+    if (input) input.value = "";
 }
 
 function showItemDetail(itemId) {
