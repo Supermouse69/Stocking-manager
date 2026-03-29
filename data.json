@@ -1,9 +1,26 @@
 {
   "lastUpdated": 1743240000000,
   "types": [
-    { "id": 1743240000001, "name": "Food", "customFields": ["Calories", "Box Size"] },
-    { "id": 1743240000002, "name": "Medical", "customFields": ["Dosage", "Power"] },
-    { "id": 1743240000003, "name": "Weapons", "customFields": ["Caliber", "Power"] }
+    {
+      "id": 1743240000001,
+      "name": "Food",
+      "customFields": []
+    },
+    {
+      "id": 1743240000002,
+      "name": "Medical",
+      "customFields": []
+    },
+    {
+      "id": 1743240000003,
+      "name": "Weapons",
+      "customFields": []
+    },
+    {
+      "id": 1743240000004,
+      "name": "Power & Tools",
+      "customFields": []
+    }
   ],
   "items": []
 }
