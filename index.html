@@ -50,16 +50,21 @@
             </div>
         </div>
 
-        <div class="flex flex-col md:flex-row h-[calc(100vh-73px)] overflow-hidden">
-            <!-- Sidebar -->
-            <div id="sidebar" class="w-full md:w-80 border-b md:border-r border-zinc-800 bg-zinc-950 md:bg-transparent p-6 overflow-y-auto md:block hidden">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-xl font-semibold">Stock Types</h2>
-                    <button onclick="showAddTypeModal()" 
-                            class="bg-zinc-800 hover:bg-zinc-700 px-5 py-2 rounded-3xl text-sm">+ Type</button>
-                </div>
-                <ul id="types-list" class="space-y-2"></ul>
-            </div>
+        <div class="overflow-x-auto">
+                        <table class="w-full bg-zinc-900 rounded-3xl overflow-hidden min-w-full">
+                            <thead>
+                                <tr class="border-b border-zinc-700">
+                                    <th class="px-4 py-4 text-left">Name</th>
+                                    <th class="px-4 py-4 text-left">Qty</th>
+                                    <th class="px-4 py-4 text-left">Status</th>
+                                    <th class="px-4 py-4 text-left">Expiry</th>
+                                    <th class="px-4 py-4 text-left hidden md:table-cell">Location</th>
+                                    <th class="px-4 py-4 text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="items-table-body" class="divide-y divide-zinc-700"></tbody>
+                        </table>
+                    </div>
 
             <!-- Main Content -->
             <div class="flex-1 p-4 md:p-8 overflow-y-auto">
@@ -189,6 +194,57 @@
         </div>
     </div>
 
+
+
+        <!-- Item Detail Modal (Bio View) -->
+    <div id="item-detail-modal" onclick="if(event.target.id==='item-detail-modal')hideItemDetailModal()" 
+         class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+        <div onclick="event.stopImmediatePropagation()" 
+             class="bg-zinc-900 rounded-3xl p-6 md:p-8 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="detail-item-name" class="text-2xl font-semibold"></h2>
+                <button onclick="hideItemDetailModal()" class="text-3xl text-zinc-400 hover:text-white">×</button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-6 mb-8">
+                <div>
+                    <p class="text-zinc-400 text-sm">Quantity</p>
+                    <p id="detail-qty" class="text-3xl font-mono"></p>
+                </div>
+                <div>
+                    <p class="text-zinc-400 text-sm">Status</p>
+                    <p id="detail-status" class="text-lg"></p>
+                </div>
+                <div>
+                    <p class="text-zinc-400 text-sm">Expiry Date</p>
+                    <p id="detail-expiry" class="text-lg"></p>
+                </div>
+                <div>
+                    <p class="text-zinc-400 text-sm">Location</p>
+                    <p id="detail-location" class="text-lg"></p>
+                </div>
+            </div>
+
+            <!-- Custom Fields Section -->
+            <div id="detail-custom-fields" class="mb-8"></div>
+
+            <!-- History -->
+            <div class="mb-8">
+                <h3 class="text-lg font-medium mb-3">Quantity History</h3>
+                <div id="detail-history" class="space-y-2 max-h-60 overflow-auto bg-zinc-950 p-4 rounded-3xl"></div>
+            </div>
+
+            <div class="flex gap-4">
+                <button onclick="showQRModalFromDetail()" 
+                        class="flex-1 py-4 bg-purple-600 hover:bg-purple-500 rounded-3xl">Show QR Code</button>
+                <button onclick="hideItemDetailModal()" 
+                        class="flex-1 py-4 bg-zinc-800 hover:bg-zinc-700 rounded-3xl">Close</button>
+            </div>
+        </div>
+    </div>
+
+    
     <script src="app.js" defer></script>
 </body>
 </html>

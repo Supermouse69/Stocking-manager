@@ -164,7 +164,8 @@ function renderItemsTable() {
     
     filteredItems.forEach(item => {
         const tr = document.createElement("tr");
-        tr.className = "hover:bg-zinc-800";
+        tr.className = "hover:bg-zinc-800 cursor-pointer";
+            tr.onclick = () => showItemDetail(item.id);
         const expiryClass = item.expiry && new Date(item.expiry) < new Date(Date.now() + 30*86400000) ? "text-orange-400" : "";
         
         tr.innerHTML = `
@@ -533,6 +534,78 @@ function createNewType() {
 function hideAddTypeModal() {
     document.getElementById("add-type-modal").classList.add("hidden");
     document.getElementById("type-name-input").value = "";
+}
+
+// Show item detail modal (the "bio" view)
+function showItemDetail(itemId) {
+    selectedItemId = itemId;
+    const item = currentStockData.items.find(i => i.id === itemId);
+    const type = currentStockData.types.find(t => t.id === selectedTypeId);
+
+    if (!item || !type) return;
+
+    document.getElementById("detail-item-name").textContent = item.name;
+    document.getElementById("detail-qty").textContent = item.quantity;
+    document.getElementById("detail-status").textContent = item.status || "Good";
+    document.getElementById("detail-expiry").textContent = item.expiry || "No expiry";
+    document.getElementById("detail-location").textContent = item.location || "Not set";
+
+    // Render custom fields with values
+    const customContainer = document.getElementById("detail-custom-fields");
+    customContainer.innerHTML = "<h3 class='text-lg font-medium mb-4'>Custom Fields</h3>";
+
+    if (type.customFields && type.customFields.length > 0) {
+        type.customFields.forEach(field => {
+            const div = document.createElement("div");
+            div.className = "mb-6 bg-zinc-950 p-5 rounded-3xl";
+            div.innerHTML = `<p class="text-emerald-300 mb-2">${field.name}</p>`;
+
+            if (field.subFields && field.subFields.length > 0) {
+                let subHtml = '';
+                field.subFields.forEach(sub => {
+                    const val = item.customValues && item.customValues[field.name] && item.customValues[field.name][sub] 
+                                ? item.customValues[field.name][sub] 
+                                : "—";
+                    subHtml += `<div class="flex justify-between py-1"><span class="text-zinc-400">${sub}</span><span>${val}</span></div>`;
+                });
+                div.innerHTML += subHtml;
+            } else {
+                const val = item.customValues && item.customValues[field.name] 
+                            ? item.customValues[field.name] 
+                            : "—";
+                div.innerHTML += `<p class="text-lg">${val}</p>`;
+            }
+            customContainer.appendChild(div);
+        });
+    } else {
+        customContainer.innerHTML += `<p class="text-zinc-400">No custom fields defined for this type</p>`;
+    }
+
+    // Render history
+    const historyContainer = document.getElementById("detail-history");
+    historyContainer.innerHTML = "";
+    if (item.history && item.history.length > 0) {
+        item.history.forEach(entry => {
+            const d = document.createElement("div");
+            d.className = "flex justify-between text-sm py-2 border-b border-zinc-800 last:border-0";
+            const sign = entry.change > 0 ? "+" : "";
+            d.innerHTML = `<span>${new Date(entry.date).toLocaleString()}</span><span class="font-mono">${sign}${entry.change}</span>`;
+            historyContainer.appendChild(d);
+        });
+    } else {
+        historyContainer.innerHTML = `<p class="text-zinc-400 text-center py-4">No history yet</p>`;
+    }
+
+    document.getElementById("item-detail-modal").classList.remove("hidden");
+}
+
+function hideItemDetailModal() {
+    document.getElementById("item-detail-modal").classList.add("hidden");
+}
+
+function showQRModalFromDetail() {
+    hideItemDetailModal();
+    showQRModal(selectedItemId);
 }
 
 // App initialization
