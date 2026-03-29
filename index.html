@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Organizer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#111827">
+</head>
+<body class="bg-zinc-950 text-white min-h-screen font-sans">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="flex items-center justify-between border-b border-zinc-800 p-4 sticky top-0 bg-zinc-950 z-10">
+            <h1 class="text-3xl font-bold flex items-center gap-3">
+                📦 Stock Organizer
+                <span class="text-xs bg-emerald-900 text-emerald-300 px-3 py-1 rounded-3xl">bad times ready</span>
+            </h1>
+            
+            <div id="status-notifier" class="px-6 py-3 rounded-3xl text-sm font-medium flex items-center gap-2 transition-all">
+                <!-- JS fills this -->
+            </div>
+
+            <div class="flex items-center gap-3">
+                <button onclick="exportData()" 
+                        class="bg-emerald-600 hover:bg-emerald-500 px-6 py-3 rounded-3xl font-medium flex items-center gap-2">
+                    📤 Export JSON
+                </button>
+                <label onclick="document.getElementById('import-input').click()" 
+                       class="bg-amber-600 hover:bg-amber-500 px-6 py-3 rounded-3xl font-medium flex items-center gap-2 cursor-pointer">
+                    📥 Import JSON
+                </label>
+                <input id="import-input" type="file" accept=".json" class="hidden" onchange="importData(event)">
+                <button onclick="loadFromRepo()" 
+                        class="bg-blue-600 hover:bg-blue-500 px-6 py-3 rounded-3xl font-medium">
+                    🔄 Load from Repo
+                </button>
+            </div>
+        </div>
+
+        <div class="flex h-[calc(100vh-73px)]">
+            <!-- Sidebar: Stock Types -->
+            <div class="w-80 border-r border-zinc-800 p-6 overflow-y-auto">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-semibold">Stock Types</h2>
+                    <button onclick="showAddTypeModal()" 
+                            class="bg-zinc-800 hover:bg-zinc-700 px-5 py-2 rounded-3xl text-sm flex items-center gap-2">
+                        + Add Type
+                    </button>
+                </div>
+                <ul id="types-list" class="space-y-2">
+                    <!-- JS populated -->
+                </ul>
+            </div>
+
+            <!-- Main content -->
+            <div class="flex-1 p-8 overflow-y-auto">
+                <div id="dashboard-view">
+                    <h2 class="text-2xl font-semibold mb-4">Dashboard</h2>
+                    <div class="bg-zinc-900 rounded-3xl p-8 text-center">
+                        <p class="text-zinc-400 mb-4">✅ Types are working!</p>
+                        <p class="text-emerald-300">Add some stock types above.<br>Next step = items + custom fields + alerts</p>
+                    </div>
+                </div>
+
+                <!-- Items view (empty for now) -->
+                <div id="items-view" class="hidden">
+                    <div class="flex justify-between mb-6">
+                        <h2 id="current-type-name" class="text-2xl font-semibold"></h2>
+                        <button onclick="backToDashboard()" class="text-zinc-400 hover:text-white flex items-center gap-2">← Back to dashboard</button>
+                    </div>
+                    <p class="text-zinc-400">Items & custom fields coming in step 2</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Type Modal -->
+    <div id="add-type-modal" onclick="if(event.target.id==='add-type-modal')hideAddTypeModal()" 
+         class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+        <div onclick="event.stopImmediatePropagation()" 
+             class="bg-zinc-900 rounded-3xl p-8 w-full max-w-md">
+            <h3 class="text-2xl mb-6">New Stock Type</h3>
+            <input id="type-name-input" type="text" 
+                   class="w-full bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4 text-lg placeholder-zinc-500" 
+                   placeholder="e.g. Food, Medical, Weapons, Seeds...">
+            <div class="flex gap-4 mt-8">
+                <button onclick="hideAddTypeModal()" 
+                        class="flex-1 py-4 bg-zinc-800 hover:bg-zinc-700 rounded-3xl">Cancel</button>
+                <button onclick="createNewType()" 
+                        class="flex-1 py-4 bg-emerald-600 hover:bg-emerald-500 rounded-3xl">Create Type</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js" defer></script>
+</body>
+</html>
