@@ -22,7 +22,6 @@
             <div id="status-notifier" class="hidden md:flex px-6 py-3 rounded-3xl text-sm font-medium items-center gap-2"></div>
 
             <div class="flex items-center gap-2 md:gap-3">
-                <!-- Mobile menu -->
                 <button onclick="toggleSidebar()" id="mobile-menu-btn"
                         class="md:hidden bg-zinc-800 hover:bg-zinc-700 p-3 rounded-3xl text-xl">
                     ☰
@@ -31,7 +30,6 @@
                 <button onclick="showTab(0)" id="tab-0" class="tab-btn px-4 py-2 rounded-3xl bg-emerald-600 text-sm md:text-base">Dashboard</button>
                 <button onclick="showTab(1)" id="tab-1" class="tab-btn px-4 py-2 rounded-3xl hover:bg-zinc-800 text-sm md:text-base">🛒 Shopping</button>
                 
-                <!-- Export + Import buttons -->
                 <button onclick="exportData()" 
                         class="bg-emerald-600 hover:bg-emerald-500 px-5 py-3 rounded-3xl flex items-center gap-2 text-sm md:text-base">
                     📤 Export
@@ -50,21 +48,16 @@
             </div>
         </div>
 
-        <div class="overflow-x-auto">
-                        <table class="w-full bg-zinc-900 rounded-3xl overflow-hidden min-w-full">
-                            <thead>
-                                <tr class="border-b border-zinc-700">
-                                    <th class="px-4 py-4 text-left">Name</th>
-                                    <th class="px-4 py-4 text-left">Qty</th>
-                                    <th class="px-4 py-4 text-left">Status</th>
-                                    <th class="px-4 py-4 text-left">Expiry</th>
-                                    <th class="px-4 py-4 text-left hidden md:table-cell">Location</th>
-                                    <th class="px-4 py-4 text-center">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="items-table-body" class="divide-y divide-zinc-700"></tbody>
-                        </table>
-                    </div>
+        <div class="flex flex-col md:flex-row h-[calc(100vh-73px)] overflow-hidden">
+            <!-- Sidebar -->
+            <div id="sidebar" class="w-full md:w-80 border-b md:border-r border-zinc-800 bg-zinc-950 p-6 overflow-y-auto md:block hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-semibold">Stock Types</h2>
+                    <button onclick="showAddTypeModal()" 
+                            class="bg-zinc-800 hover:bg-zinc-700 px-5 py-2 rounded-3xl text-sm">+ Type</button>
+                </div>
+                <ul id="types-list" class="space-y-2"></ul>
+            </div>
 
             <!-- Main Content -->
             <div class="flex-1 p-4 md:p-8 overflow-y-auto">
@@ -93,6 +86,7 @@
                     
                     <div id="custom-fields-display" class="mb-6 flex flex-wrap gap-2"></div>
                     
+                    <!-- Fixed Table -->
                     <div class="overflow-x-auto">
                         <table class="w-full bg-zinc-900 rounded-3xl overflow-hidden min-w-full">
                             <thead>
@@ -113,17 +107,16 @@
         </div>
     </div>
 
+    <!-- All Modals -->
     <!-- Add Type Modal -->
     <div id="add-type-modal" onclick="if(event.target.id==='add-type-modal')hideAddTypeModal()" 
          class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50">
         <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 rounded-3xl p-8 w-full max-w-md">
             <h3 class="text-2xl mb-6">New Stock Type</h3>
-            <input id="type-name-input" type="text" 
-                   class="w-full bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4 text-lg placeholder-zinc-500" 
-                   placeholder="e.g. Food, Medical, Weapons, Seeds...">
+            <input id="type-name-input" type="text" class="w-full bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4 text-lg" placeholder="e.g. Food, Medical...">
             <div class="flex gap-4 mt-8">
-                <button onclick="hideAddTypeModal()" class="flex-1 py-4 bg-zinc-800 hover:bg-zinc-700 rounded-3xl">Cancel</button>
-                <button onclick="createNewType()" class="flex-1 py-4 bg-emerald-600 hover:bg-emerald-500 rounded-3xl">Create Type</button>
+                <button onclick="hideAddTypeModal()" class="flex-1 py-4 bg-zinc-800 rounded-3xl">Cancel</button>
+                <button onclick="createNewType()" class="flex-1 py-4 bg-emerald-600 rounded-3xl">Create</button>
             </div>
         </div>
     </div>
@@ -135,10 +128,10 @@
             <h3 class="text-2xl mb-6">New Item</h3>
             <input id="item-name" type="text" placeholder="Item name" class="w-full mb-4 bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4">
             <div class="grid grid-cols-2 gap-4 mb-4">
-                <input id="item-qty" type="number" value="1" placeholder="Quantity" class="bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4">
+                <input id="item-qty" type="number" value="1" class="bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4">
                 <input id="item-expiry" type="date" class="bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4">
             </div>
-            <input id="item-location" type="text" placeholder="Storage location (e.g. Basement B3)" class="w-full mb-4 bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4">
+            <input id="item-location" type="text" placeholder="Storage location" class="w-full mb-4 bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4">
             <select id="item-status" class="w-full mb-6 bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4">
                 <option value="Good">Good</option>
                 <option value="Low">Low</option>
@@ -151,15 +144,13 @@
         </div>
     </div>
 
-    <!-- Add Custom Field Modal (with sub-fields) -->
+    <!-- Add Custom Field Modal -->
     <div id="add-custom-field-modal" onclick="if(event.target.id==='add-custom-field-modal')hideAddCustomFieldModal()" 
          class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50">
         <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 rounded-3xl p-8 w-full max-w-md">
             <h3 class="text-2xl mb-6">Add Custom Field + Sub-fields</h3>
-            <input id="custom-field-name" type="text" placeholder="Field name (e.g. Power)" 
-                   class="w-full mb-4 bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4">
-            <input id="custom-subfields" type="text" placeholder="Sub-fields (comma separated): battery type, off-grid runtime, has spares" 
-                   class="w-full mb-6 bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4">
+            <input id="custom-field-name" type="text" placeholder="e.g. Power" class="w-full mb-4 bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4">
+            <input id="custom-subfields" type="text" placeholder="battery type, off-grid runtime, has spares" class="w-full mb-6 bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4">
             <div class="flex gap-4">
                 <button onclick="hideAddCustomFieldModal()" class="flex-1 py-4 bg-zinc-800 rounded-3xl">Cancel</button>
                 <button onclick="createCustomField()" class="flex-1 py-4 bg-emerald-600 rounded-3xl">Add Field</button>
@@ -170,8 +161,7 @@
     <!-- Edit Custom Values Modal -->
     <div id="edit-custom-modal" onclick="if(event.target.id==='edit-custom-modal')hideEditCustomModal()" 
          class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-        <div onclick="event.stopImmediatePropagation()" id="custom-form-container" 
-             class="bg-zinc-900 rounded-3xl p-8 w-full max-w-2xl max-h-[90vh] overflow-auto"></div>
+        <div onclick="event.stopImmediatePropagation()" id="custom-form-container" class="bg-zinc-900 rounded-3xl p-8 w-full max-w-2xl max-h-[90vh] overflow-auto"></div>
     </div>
 
     <!-- History Modal -->
@@ -194,14 +184,10 @@
         </div>
     </div>
 
-
-
-        <!-- Item Detail Modal (Bio View) -->
+    <!-- Item Detail Modal (Bio View) -->
     <div id="item-detail-modal" onclick="if(event.target.id==='item-detail-modal')hideItemDetailModal()" 
          class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-        <div onclick="event.stopImmediatePropagation()" 
-             class="bg-zinc-900 rounded-3xl p-6 md:p-8 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            
+        <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 rounded-3xl p-6 md:p-8 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-6">
                 <h2 id="detail-item-name" class="text-2xl font-semibold"></h2>
                 <button onclick="hideItemDetailModal()" class="text-3xl text-zinc-400 hover:text-white">×</button>
@@ -226,25 +212,20 @@
                 </div>
             </div>
 
-            <!-- Custom Fields Section -->
             <div id="detail-custom-fields" class="mb-8"></div>
 
-            <!-- History -->
             <div class="mb-8">
                 <h3 class="text-lg font-medium mb-3">Quantity History</h3>
                 <div id="detail-history" class="space-y-2 max-h-60 overflow-auto bg-zinc-950 p-4 rounded-3xl"></div>
             </div>
 
             <div class="flex gap-4">
-                <button onclick="showQRModalFromDetail()" 
-                        class="flex-1 py-4 bg-purple-600 hover:bg-purple-500 rounded-3xl">Show QR Code</button>
-                <button onclick="hideItemDetailModal()" 
-                        class="flex-1 py-4 bg-zinc-800 hover:bg-zinc-700 rounded-3xl">Close</button>
+                <button onclick="showQRModalFromDetail()" class="flex-1 py-4 bg-purple-600 hover:bg-purple-500 rounded-3xl">Show QR Code</button>
+                <button onclick="hideItemDetailModal()" class="flex-1 py-4 bg-zinc-800 hover:bg-zinc-700 rounded-3xl">Close</button>
             </div>
         </div>
     </div>
 
-    
     <script src="app.js" defer></script>
 </body>
 </html>
