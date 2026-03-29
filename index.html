@@ -41,10 +41,14 @@
                 </label>
                 <input id="import-input" type="file" accept=".json" class="hidden" onchange="importData(event)">
                 
+                <!--
                 <button onclick="loadFromRepo()" 
                         class="hidden md:block bg-blue-600 hover:bg-blue-500 px-5 py-3 rounded-3xl text-sm">
                     🔄 Repo
                 </button>
+
+                -->
+                
             </div>
         </div>
 
@@ -261,12 +265,14 @@
                         class="py-4 bg-emerald-600 hover:bg-emerald-500 rounded-3xl font-medium">
                     ✅ Overwrite Repo (Save my local changes)
                 </button>
-                
+
+                <!--
                 <button onclick="loadFromRepo()" 
                         class="py-4 bg-zinc-700 hover:bg-zinc-600 rounded-3xl font-medium">
                     ⬇️ Load from Repo (Discard my local changes)
                 </button>
-                
+                -->
+
                 <button onclick="hideCompareModal()" 
                         class="py-4 bg-zinc-800 hover:bg-zinc-700 rounded-3xl font-medium">
                     Cancel
