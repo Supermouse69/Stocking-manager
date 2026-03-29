@@ -312,32 +312,36 @@ function showEditCustomModal(itemId) {
         html += `<div class="mb-8 border-b border-zinc-700 pb-6 last:border-0 last:pb-0">`;
         html += `<label class="block text-emerald-300 font-medium mb-3">${field.name}</label>`;
 
-        // Main field value (always show, even if there are sub-fields)
-        const mainVal = item.customValues && item.customValues[field.name] 
-                        ? (typeof item.customValues[field.name] === 'object' 
-                           ? JSON.stringify(item.customValues[field.name]) 
-                           : item.customValues[field.name]) 
-                        : "";
+        // Main field value
+        let mainVal = "";
+        if (item.customValues && item.customValues[field.name] !== undefined) {
+            if (typeof item.customValues[field.name] === 'object' && item.customValues[field.name] !== null) {
+                mainVal = ""; // If it has subfields, main value is usually empty
+            } else {
+                mainVal = item.customValues[field.name];
+            }
+        }
         
         html += `
             <div class="mb-4">
-                <span class="text-xs text-zinc-500 block mb-1">Main Value</span>
+                <span class="text-xs text-zinc-500 block mb-1">Main Value (optional)</span>
                 <input type="text" id="main-${field.name}" value="${mainVal}" 
                        class="w-full bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-3">
             </div>`;
 
         // Sub-fields
         if (field.subFields && field.subFields.length > 0) {
-            html += `<div class="pl-4 border-l-2 border-zinc-700">`;
+            html += `<div class="pl-4 border-l-2 border-zinc-700 space-y-4">`;
             field.subFields.forEach(sub => {
-                const subVal = item.customValues && 
-                               item.customValues[field.name] && 
-                               item.customValues[field.name][sub] 
-                               ? item.customValues[field.name][sub] 
-                               : "";
+                let subVal = "";
+                if (item.customValues && 
+                    item.customValues[field.name] && 
+                    typeof item.customValues[field.name] === 'object') {
+                    subVal = item.customValues[field.name][sub] || "";
+                }
                 
                 html += `
-                    <div class="mb-4">
+                    <div>
                         <span class="text-sm text-zinc-400 block mb-1">${sub}</span>
                         <input type="text" id="sub-${field.name}-${sub}" value="${subVal}" 
                                class="w-full bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-3">
@@ -372,31 +376,44 @@ async function saveCustomValues() {
     item.customValues = item.customValues || {};
 
     type.customFields.forEach(field => {
-        // Save main field value
         const mainInput = document.getElementById(`main-${field.name}`);
-        if (mainInput) {
-            const mainVal = mainInput.value.trim();
-            if (mainVal) {
-                item.customValues[field.name] = mainVal;
-            }
-        }
-
-        // Save sub-fields
+        
         if (field.subFields && field.subFields.length > 0) {
-            if (typeof item.customValues[field.name] !== 'object') {
-                item.customValues[field.name] = {};
+            // Has sub-fields → save as object
+            item.customValues[field.name] = {};
+            
+            // Save main value (if user entered something)
+            if (mainInput && mainInput.value.trim()) {
+                item.customValues[field.name]["main"] = mainInput.value.trim();
             }
+
+            // Save sub-fields
             field.subFields.forEach(sub => {
                 const subInput = document.getElementById(`sub-${field.name}-${sub}`);
                 if (subInput) {
-                    item.customValues[field.name][sub] = subInput.value.trim();
+                    const val = subInput.value.trim();
+                    if (val) {
+                        item.customValues[field.name][sub] = val;
+                    }
                 }
             });
+        } 
+        else {
+            // No sub-fields → save as simple string
+            if (mainInput) {
+                const val = mainInput.value.trim();
+                if (val) {
+                    item.customValues[field.name] = val;
+                } else {
+                    delete item.customValues[field.name]; // remove if empty
+                }
+            }
         }
     });
 
     currentStockData.lastUpdated = Date.now();
     await saveLocalData(currentStockData);
+    
     hideEditCustomModal();
     renderItemsTable();
     updateNotifier();
