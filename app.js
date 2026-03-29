@@ -170,11 +170,13 @@ function renderItemsTable() {
         
         tr.innerHTML = `
             <td class="px-6 py-4">${item.name}</td>
+
             <td class="px-6 py-4">
                 <button onclick="changeQty(${item.id}, -1)" class="px-3 text-lg">-</button>
-                <span class="font-mono mx-2">${item.quantity}</span>
+                <span class="font-mono mx-3">${item.quantity}</span>
                 <button onclick="changeQty(${item.id}, 1)" class="px-3 text-lg">+</button>
             </td>
+
             <td class="px-6 py-4">${item.status}</td>
             <td class="px-6 py-4 ${expiryClass}">${item.expiry || '-'}</td>
             <td class="px-6 py-4">${item.location || '-'}</td>
@@ -194,9 +196,13 @@ async function createNewItem() {
     const item = {
         id: Date.now(),
         typeId: selectedTypeId,
+        
+        
         name: document.getElementById("item-name").value.trim(),
-        quantity: parseInt(document.getElementById("item-qty").value) || 1,
+        quantity: document.getElementById("item-qty").value.trim(),
         status: document.getElementById("item-status").value,
+        
+        
         expiry: document.getElementById("item-expiry").value || null,
         location: document.getElementById("item-location").value.trim() || null,
         customValues: {},
@@ -214,23 +220,35 @@ async function createNewItem() {
     updateNotifier();
 }
 
-// Change quantity and log history
+// Change quantity and log history Change quantity with note
 function changeQty(id, delta) {
     const item = currentStockData.items.find(i => i.id === id);
     if (!item) return;
-    
+
     const oldQty = item.quantity;
-    item.quantity = Math.max(0, item.quantity + delta);
-    
+    let newQty = oldQty;
+
+    if (typeof oldQty === "number") {
+        newQty = Math.max(0, oldQty + delta);
+    } else {
+        // For text quantities, ask user for new value
+        newQty = prompt(`Current quantity: ${oldQty}\nEnter new quantity (can be text):`, oldQty);
+        if (newQty === null) return; // user cancelled
+    }
+
+    item.quantity = newQty;
+
+    // Log history
     if (!item.history) item.history = [];
     item.history.unshift({
         date: new Date().toISOString(),
         change: delta,
         from: oldQty,
-        to: item.quantity
+        to: newQty,
+        note: delta > 0 ? "Added" : "Consumed"
     });
     if (item.history.length > 15) item.history.pop();
-    
+
     currentStockData.lastUpdated = Date.now();
     saveLocalData(currentStockData).then(() => {
         renderItemsTable();
@@ -606,6 +624,16 @@ function hideItemDetailModal() {
 function showQRModalFromDetail() {
     hideItemDetailModal();
     showQRModal(selectedItemId);
+}
+
+// Helper to check if quantity is low
+function isLowStock(qty) {
+    if (typeof qty === "number") return qty < 3;
+    if (typeof qty === "string") {
+        const num = parseFloat(qty);
+        return !isNaN(num) && num < 3;
+    }
+    return false;
 }
 
 // App initialization

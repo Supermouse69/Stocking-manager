@@ -127,10 +127,14 @@
         <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 rounded-3xl p-8 w-full max-w-lg">
             <h3 class="text-2xl mb-6">New Item</h3>
             <input id="item-name" type="text" placeholder="Item name" class="w-full mb-4 bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4">
+            
             <div class="grid grid-cols-2 gap-4 mb-4">
-                <input id="item-qty" type="number" value="1" class="bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4">
+                <label class="block text-zinc-400 text-sm mb-2">Quantity (can be text)</label>
+                <input id="item-qty" type="text" placeholder="e.g. 5 boxes, 2 sealed packs, half bag" 
+                       class="w-full bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4">
                 <input id="item-expiry" type="date" class="bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4">
             </div>
+
             <input id="item-location" type="text" placeholder="Storage location" class="w-full mb-4 bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4">
             <select id="item-status" class="w-full mb-6 bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4">
                 <option value="Good">Good</option>
