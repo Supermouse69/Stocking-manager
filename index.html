@@ -40,15 +40,6 @@
                     📥 Import
                 </label>
                 <input id="import-input" type="file" accept=".json" class="hidden" onchange="importData(event)">
-                
-                <!--
-                <button onclick="loadFromRepo()" 
-                        class="hidden md:block bg-blue-600 hover:bg-blue-500 px-5 py-3 rounded-3xl text-sm">
-                    🔄 Repo
-                </button>
-
-                -->
-                
             </div>
         </div>
 
@@ -90,7 +81,6 @@
                     
                     <div id="custom-fields-display" class="mb-6 flex flex-wrap gap-2"></div>
                     
-                    <!-- Fixed Table -->
                     <div class="overflow-x-auto">
                         <table class="w-full bg-zinc-900 rounded-3xl overflow-hidden min-w-full">
                             <thead>
@@ -111,7 +101,8 @@
         </div>
     </div>
 
-    <!-- All Modals -->
+    <!-- Modals -->
+
     <!-- Add Type Modal -->
     <div id="add-type-modal" onclick="if(event.target.id==='add-type-modal')hideAddTypeModal()" 
          class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50">
@@ -131,14 +122,12 @@
         <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 rounded-3xl p-8 w-full max-w-lg">
             <h3 class="text-2xl mb-6">New Item</h3>
             <input id="item-name" type="text" placeholder="Item name" class="w-full mb-4 bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4">
-            
-            <div class="grid grid-cols-2 gap-4 mb-4">
+
+            <div class="mb-4">
                 <label class="block text-zinc-400 text-sm mb-2">Quantity (can be text)</label>
-                <input id="item-qty" type="text" placeholder="e.g. 5 boxes, 2 sealed packs, half bag" 
+                <input id="item-qty" type="text" placeholder="e.g. 5 boxes, 2 sealed packs" 
                        class="w-full bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4">
-                <input id="item-expiry" type="date" class="bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4">
             </div>
-            <!-- Expiry with checkbox -->
 
             <div class="mb-6">
                 <label class="flex items-center gap-2 text-zinc-400 text-sm mb-3">
@@ -148,16 +137,15 @@
                 <input id="item-expiry" type="date" class="w-full bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4">
             </div>
 
-
             <input id="item-location" type="text" placeholder="Storage location" class="w-full mb-4 bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4">
+
             <select id="item-status" class="w-full mb-6 bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4">
                 <option value="Good">Good</option>
                 <option value="Low_Stock">Low Stock</option>
                 <option value="Expired">Expired</option>
                 <option value="Out_of_Stock">Out of Stock</option>
-                <option value="Contaminated">Contaminated</option>
-                <option value="Dispose">Dispose</option>
             </select>
+
             <div class="flex gap-4">
                 <button onclick="hideAddItemModal()" class="flex-1 py-4 bg-zinc-800 rounded-3xl">Cancel</button>
                 <button onclick="createNewItem()" class="flex-1 py-4 bg-emerald-600 rounded-3xl">Add Item</button>
@@ -182,7 +170,8 @@
     <!-- Edit Custom Values Modal -->
     <div id="edit-custom-modal" onclick="if(event.target.id==='edit-custom-modal')hideEditCustomModal()" 
          class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-        <div onclick="event.stopImmediatePropagation()" id="custom-form-container" class="bg-zinc-900 rounded-3xl p-8 w-full max-w-2xl max-h-[90vh] overflow-auto"></div>
+        <div onclick="event.stopImmediatePropagation()" id="custom-form-container" 
+             class="bg-zinc-900 rounded-3xl p-8 w-full max-w-2xl max-h-[90vh] overflow-auto"></div>
     </div>
 
     <!-- History Modal -->
@@ -247,41 +236,20 @@
         </div>
     </div>
 
-
-        <!-- Compare & Export Confirmation Modal -->
+    <!-- Compare Modal -->
     <div id="compare-modal" onclick="if(event.target.id==='compare-modal')hideCompareModal()" 
          class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-        <div onclick="event.stopImmediatePropagation()" 
-             class="bg-zinc-900 rounded-3xl p-8 w-full max-w-2xl max-h-[85vh] overflow-y-auto">
-            
-            <h3 class="text-2xl font-semibold mb-6 flex items-center gap-3">
-                📊 Data Comparison
-            </h3>
-            
+        <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 rounded-3xl p-8 w-full max-w-2xl max-h-[85vh] overflow-y-auto">
+            <h3 class="text-2xl font-semibold mb-6">📊 Data Comparison</h3>
             <div id="compare-summary" class="mb-8 p-6 bg-zinc-950 rounded-3xl text-sm"></div>
-            
             <div class="flex flex-col gap-3">
-                <button onclick="proceedWithExport()" 
-                        class="py-4 bg-emerald-600 hover:bg-emerald-500 rounded-3xl font-medium">
-                    ✅ Overwrite Repo (Save my local changes)
+                <button onclick="proceedWithExport()" class="py-4 bg-emerald-600 hover:bg-emerald-500 rounded-3xl font-medium">
+                    ✅ Overwrite Repo (Save my changes)
                 </button>
-
-                <!--
-                <button onclick="loadFromRepo()" 
-                        class="py-4 bg-zinc-700 hover:bg-zinc-600 rounded-3xl font-medium">
-                    ⬇️ Load from Repo (Discard my local changes)
-                </button>
-                -->
-
-                <button onclick="hideCompareModal()" 
-                        class="py-4 bg-zinc-800 hover:bg-zinc-700 rounded-3xl font-medium">
+                <button onclick="hideCompareModal()" class="py-4 bg-zinc-800 hover:bg-zinc-700 rounded-3xl font-medium">
                     Cancel
                 </button>
             </div>
-            
-            <p class="text-xs text-zinc-500 mt-6 text-center">
-                Tip: Always keep a backup of your mystock.json file
-            </p>
         </div>
     </div>
 
