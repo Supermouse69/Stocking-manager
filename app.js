@@ -84,6 +84,26 @@ function renderTypes() {
         list.appendChild(li);
     });
 }
+function createNewType() {
+    const name = document.getElementById("type-name-input").value.trim();
+    if (!name) {
+        alert("Type name is required");
+        return;
+    }
+    
+    currentStockData.types.push({
+        id: Date.now(),
+        name: name,
+        customFields: []
+    });
+    
+    currentStockData.lastUpdated = Date.now();
+    saveLocalData(currentStockData).then(() => {
+        renderTypes();
+        updateNotifier();
+        hideAddTypeModal();
+    });
+}
 
 function selectType(id) {
     selectedTypeId = id;
