@@ -678,6 +678,85 @@ function isLowStock(qty) {
     return false;
 }
 
+// New: Smart Export with comparison
+async function exportData() {
+    if (!currentStockData || !currentStockData.types) {
+        alert("No data to export!");
+        return;
+    }
+
+    const repoData = await fetchRepoData();
+
+    // If no repo data or same as local → just export normally
+    if (!repoData || JSON.stringify(repoData) === JSON.stringify(currentStockData)) {
+        downloadJSON();
+        return;
+    }
+
+    // Show comparison modal
+    showCompareModal(repoData);
+}
+
+// Download the JSON
+function downloadJSON() {
+    try {
+        const dataToExport = JSON.parse(JSON.stringify(currentStockData));
+        const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `mystock_${new Date().toISOString().slice(0,10)}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+
+        // Success feedback
+        const notifier = document.getElementById("status-notifier");
+        const original = notifier.innerHTML;
+        notifier.innerHTML = `✅ Exported successfully`;
+        setTimeout(() => { notifier.innerHTML = original; }, 2500);
+    } catch (err) {
+        console.error(err);
+        alert("Export failed");
+    }
+}
+
+// Show comparison modal
+function showCompareModal(repoData) {
+    const localTime = new Date(currentStockData.lastUpdated || Date.now());
+    const repoTime = new Date(repoData.lastUpdated || Date.now());
+
+    let summaryHTML = `
+        <div class="space-y-4">
+            <div class="flex justify-between">
+                <span class="text-emerald-300">Your Local Data</span>
+                <span class="text-zinc-400">${localTime.toLocaleString()}</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-amber-300">Repo Data</span>
+                <span class="text-zinc-400">${repoTime.toLocaleString()}</span>
+            </div>
+            
+            <div class="pt-4 border-t border-zinc-700 text-sm">
+                <p class="text-orange-300">Your local data is different from the repo version.</p>
+                <p class="text-zinc-400 mt-2">What do you want to do?</p>
+            </div>
+        </div>
+    `;
+
+    document.getElementById("compare-summary").innerHTML = summaryHTML;
+    document.getElementById("compare-modal").classList.remove("hidden");
+}
+
+function hideCompareModal() {
+    document.getElementById("compare-modal").classList.add("hidden");
+}
+
+// Proceed with export after confirmation
+function proceedWithExport() {
+    hideCompareModal();
+    downloadJSON();
+}
+
 // App initialization
 window.onload = async () => {
     await initDB();

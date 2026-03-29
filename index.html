@@ -243,6 +243,42 @@
         </div>
     </div>
 
+
+        <!-- Compare & Export Confirmation Modal -->
+    <div id="compare-modal" onclick="if(event.target.id==='compare-modal')hideCompareModal()" 
+         class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+        <div onclick="event.stopImmediatePropagation()" 
+             class="bg-zinc-900 rounded-3xl p-8 w-full max-w-2xl max-h-[85vh] overflow-y-auto">
+            
+            <h3 class="text-2xl font-semibold mb-6 flex items-center gap-3">
+                📊 Data Comparison
+            </h3>
+            
+            <div id="compare-summary" class="mb-8 p-6 bg-zinc-950 rounded-3xl text-sm"></div>
+            
+            <div class="flex flex-col gap-3">
+                <button onclick="proceedWithExport()" 
+                        class="py-4 bg-emerald-600 hover:bg-emerald-500 rounded-3xl font-medium">
+                    ✅ Overwrite Repo (Save my local changes)
+                </button>
+                
+                <button onclick="loadFromRepo()" 
+                        class="py-4 bg-zinc-700 hover:bg-zinc-600 rounded-3xl font-medium">
+                    ⬇️ Load from Repo (Discard my local changes)
+                </button>
+                
+                <button onclick="hideCompareModal()" 
+                        class="py-4 bg-zinc-800 hover:bg-zinc-700 rounded-3xl font-medium">
+                    Cancel
+                </button>
+            </div>
+            
+            <p class="text-xs text-zinc-500 mt-6 text-center">
+                Tip: Always keep a backup of your mystock.json file
+            </p>
+        </div>
+    </div>
+
     <script src="app.js" defer></script>
 </body>
 </html>
