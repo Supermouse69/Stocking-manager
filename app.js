@@ -118,22 +118,33 @@ function renderCustomFields() {
     });
 }
 
-// Create new custom field with optional sub-fields
 async function createCustomField() {
     const name = document.getElementById("custom-field-name").value.trim();
     const subStr = document.getElementById("custom-subfields").value.trim();
-    if (!name || !selectedTypeId) return;
     
+    if (!name || !selectedTypeId) {
+        alert("Field name is required");
+        return;
+    }
+
     const type = currentStockData.types.find(t => t.id === selectedTypeId);
     if (!type.customFields) type.customFields = [];
-    
+
+    // Prevent duplicates
+    const exists = type.customFields.some(f => f.name.toLowerCase() === name.toLowerCase());
+    if (exists) {
+        alert("This field name already exists! Choose a different name.");
+        return;
+    }
+
     type.customFields.push({
         name: name,
-        subFields: subStr ? subStr.split(",").map(s => s.trim()) : []
+        subFields: subStr ? subStr.split(",").map(s => s.trim()).filter(s => s.length > 0) : []
     });
     
     currentStockData.lastUpdated = Date.now();
     await saveLocalData(currentStockData);
+    
     hideAddCustomFieldModal();
     renderCustomFields();
     updateNotifier();
@@ -288,44 +299,65 @@ function hideAddCustomFieldModal() {
     document.getElementById("add-custom-field-modal").classList.add("hidden");
 }
 
-// Edit custom values (including sub-fields)
 function showEditCustomModal(itemId) {
     selectedItemId = itemId;
     const item = currentStockData.items.find(i => i.id === itemId);
     const type = currentStockData.types.find(t => t.id === selectedTypeId);
     
-    let html = `<h3 class="text-xl mb-6">Edit custom values for <span class="text-emerald-300">${item.name}</span></h3>`;
+    if (!item || !type) return;
+
+    let html = `<h3 class="text-xl mb-6">Edit values for <span class="text-emerald-300">${item.name}</span></h3>`;
     
     type.customFields.forEach(field => {
-        html += `<div class="mb-6"><label class="block text-emerald-300 mb-3 font-medium">${field.name}</label>`;
+        html += `<div class="mb-8 border-b border-zinc-700 pb-6 last:border-0 last:pb-0">`;
+        html += `<label class="block text-emerald-300 font-medium mb-3">${field.name}</label>`;
+
+        // Main field value (always show, even if there are sub-fields)
+        const mainVal = item.customValues && item.customValues[field.name] 
+                        ? (typeof item.customValues[field.name] === 'object' 
+                           ? JSON.stringify(item.customValues[field.name]) 
+                           : item.customValues[field.name]) 
+                        : "";
         
+        html += `
+            <div class="mb-4">
+                <span class="text-xs text-zinc-500 block mb-1">Main Value</span>
+                <input type="text" id="main-${field.name}" value="${mainVal}" 
+                       class="w-full bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-3">
+            </div>`;
+
+        // Sub-fields
         if (field.subFields && field.subFields.length > 0) {
+            html += `<div class="pl-4 border-l-2 border-zinc-700">`;
             field.subFields.forEach(sub => {
-                const currentVal = (item.customValues && item.customValues[field.name] && item.customValues[field.name][sub]) || "";
+                const subVal = item.customValues && 
+                               item.customValues[field.name] && 
+                               item.customValues[field.name][sub] 
+                               ? item.customValues[field.name][sub] 
+                               : "";
+                
                 html += `
                     <div class="mb-4">
                         <span class="text-sm text-zinc-400 block mb-1">${sub}</span>
-                        <input type="text" id="sub-${field.name}-${sub}" value="${currentVal}" 
+                        <input type="text" id="sub-${field.name}-${sub}" value="${subVal}" 
                                class="w-full bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-3">
                     </div>`;
             });
-        } else {
-            const currentVal = (item.customValues && item.customValues[field.name]) || "";
-            html += `<input type="text" id="field-${field.name}" value="${currentVal}" 
-                           class="w-full bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-3">`;
+            html += `</div>`;
         }
         html += `</div>`;
     });
-    
+
     html += `
         <div class="flex gap-4 mt-8">
             <button onclick="hideEditCustomModal()" class="flex-1 py-4 bg-zinc-800 rounded-3xl">Cancel</button>
-            <button onclick="saveCustomValues()" class="flex-1 py-4 bg-emerald-600 rounded-3xl">Save Values</button>
+            <button onclick="saveCustomValues()" class="flex-1 py-4 bg-emerald-600 rounded-3xl">Save All Values</button>
         </div>`;
-    
+
     document.getElementById("custom-form-container").innerHTML = html;
     document.getElementById("edit-custom-modal").classList.remove("hidden");
 }
+
 
 function hideEditCustomModal() {
     document.getElementById("edit-custom-modal").classList.add("hidden");
@@ -335,21 +367,34 @@ async function saveCustomValues() {
     const item = currentStockData.items.find(i => i.id === selectedItemId);
     const type = currentStockData.types.find(t => t.id === selectedTypeId);
     
+    if (!item || !type) return;
+
     item.customValues = item.customValues || {};
-    
+
     type.customFields.forEach(field => {
+        // Save main field value
+        const mainInput = document.getElementById(`main-${field.name}`);
+        if (mainInput) {
+            const mainVal = mainInput.value.trim();
+            if (mainVal) {
+                item.customValues[field.name] = mainVal;
+            }
+        }
+
+        // Save sub-fields
         if (field.subFields && field.subFields.length > 0) {
-            item.customValues[field.name] = {};
+            if (typeof item.customValues[field.name] !== 'object') {
+                item.customValues[field.name] = {};
+            }
             field.subFields.forEach(sub => {
-                const input = document.getElementById(`sub-${field.name}-${sub}`);
-                if (input) item.customValues[field.name][sub] = input.value.trim();
+                const subInput = document.getElementById(`sub-${field.name}-${sub}`);
+                if (subInput) {
+                    item.customValues[field.name][sub] = subInput.value.trim();
+                }
             });
-        } else {
-            const input = document.getElementById(`field-${field.name}`);
-            if (input) item.customValues[field.name] = input.value.trim();
         }
     });
-    
+
     currentStockData.lastUpdated = Date.now();
     await saveLocalData(currentStockData);
     hideEditCustomModal();
