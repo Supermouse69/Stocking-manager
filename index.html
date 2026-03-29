@@ -134,12 +134,25 @@
                        class="w-full bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4">
                 <input id="item-expiry" type="date" class="bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4">
             </div>
+            <!-- Expiry with checkbox -->
+
+            <div class="mb-6">
+                <label class="flex items-center gap-2 text-zinc-400 text-sm mb-3">
+                    <input id="no-expiry" type="checkbox" class="w-5 h-5 accent-emerald-600">
+                    No Expiry / Does not expire
+                </label>
+                <input id="item-expiry" type="date" class="w-full bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4">
+            </div>
+
 
             <input id="item-location" type="text" placeholder="Storage location" class="w-full mb-4 bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4">
             <select id="item-status" class="w-full mb-6 bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4">
                 <option value="Good">Good</option>
-                <option value="Low">Low</option>
+                <option value="Low_Stock">Low Stock</option>
                 <option value="Expired">Expired</option>
+                <option value="Out_of_Stock">Out of Stock</option>
+                <option value="Contaminated">Contaminated</option>
+                <option value="Dispose">Dispose</option>
             </select>
             <div class="flex gap-4">
                 <button onclick="hideAddItemModal()" class="flex-1 py-4 bg-zinc-800 rounded-3xl">Cancel</button>

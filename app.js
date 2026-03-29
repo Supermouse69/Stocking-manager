@@ -165,7 +165,11 @@ function renderItemsTable() {
     filteredItems.forEach(item => {
         const tr = document.createElement("tr");
         tr.className = "hover:bg-zinc-800 cursor-pointer";
-            tr.onclick = () => showItemDetail(item.id);
+        tr.onclick = (e) => {
+            // If user clicked on action buttons, don't open detail
+            if (e.target.closest('button')) return;
+            showItemDetail(item.id);
+        };
         const expiryClass = item.expiry && new Date(item.expiry) < new Date(Date.now() + 30*86400000) ? "text-orange-400" : "";
         
         tr.innerHTML = `
@@ -193,17 +197,15 @@ function renderItemsTable() {
 
 // Create new item
 async function createNewItem() {
+    const noExpiry = document.getElementById("no-expiry").checked;
+    
     const item = {
         id: Date.now(),
         typeId: selectedTypeId,
-        
-        
         name: document.getElementById("item-name").value.trim(),
-        quantity: document.getElementById("item-qty").value.trim(),
+        quantity: document.getElementById("item-qty").value.trim() || "1",
         status: document.getElementById("item-status").value,
-        
-        
-        expiry: document.getElementById("item-expiry").value || null,
+        expiry: noExpiry ? null : document.getElementById("item-expiry").value || null,
         location: document.getElementById("item-location").value.trim() || null,
         customValues: {},
         history: []
