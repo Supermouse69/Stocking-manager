@@ -68,19 +68,26 @@ function updateNotifier() {
     el.className = "px-6 py-3 rounded-3xl text-sm font-medium flex items-center gap-2 bg-emerald-900 text-emerald-300";
 }
 
-// Render stock types in sidebar
+// Render stock types in sidebar + Delete button
 function renderTypes() {
     const list = document.getElementById("types-list");
     list.innerHTML = "";
+    
     if (currentStockData.types.length === 0) {
         list.innerHTML = `<li class="px-6 py-6 text-zinc-400 text-center border border-dashed border-zinc-700 rounded-3xl">No types yet — add your first one</li>`;
         return;
     }
+    
     currentStockData.types.forEach(type => {
         const li = document.createElement("li");
-        li.className = "group flex justify-between px-6 py-4 bg-zinc-900 hover:bg-zinc-800 rounded-3xl cursor-pointer transition-all";
-        li.innerHTML = `<span class="text-lg">${type.name}</span>`;
-        li.onclick = () => selectType(type.id);
+        li.className = "group flex justify-between items-center px-6 py-4 bg-zinc-900 hover:bg-zinc-800 rounded-3xl cursor-pointer transition-all";
+        
+        li.innerHTML = `
+            <span onclick="selectType(${type.id})" class="text-lg flex-1">${type.name}</span>
+            <button onclick="deleteStockType(${type.id}); event.stopImmediatePropagation()" 
+                    class="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-500 px-3 py-1 text-xl leading-none">×</button>
+        `;
+        
         list.appendChild(li);
     });
 }
@@ -139,6 +146,61 @@ function deleteCustomField(index) {
         updateNotifier();
     });
 }
+
+// Delete entire stock type + all its items
+async function deleteStockType(typeId) {
+    if (!confirm("Delete this stock type and ALL its items?\nThis action cannot be undone.")) {
+        return;
+    }
+
+    // Remove the type
+    currentStockData.types = currentStockData.types.filter(t => t.id !== typeId);
+    
+    // Remove all items belonging to this type
+    currentStockData.items = currentStockData.items.filter(i => i.typeId !== typeId);
+
+    currentStockData.lastUpdated = Date.now();
+    
+    await saveLocalData(currentStockData);
+    
+    renderTypes();
+    updateNotifier();
+    
+    // If we were viewing the deleted type, go back to dashboard
+    if (selectedTypeId === typeId) {
+        backToDashboard();
+    }
+}
+
+// Delete the currently selected stock type + all its items
+async function deleteCurrentStockType() {
+    if (!selectedTypeId) {
+        alert("No stock type selected");
+        return;
+    }
+
+    const type = currentStockData.types.find(t => t.id === selectedTypeId);
+    if (!type) return;
+
+    if (!confirm(`Delete stock type "${type.name}" and ALL its items?\nThis cannot be undone!`)) {
+        return;
+    }
+
+    // Remove the type
+    currentStockData.types = currentStockData.types.filter(t => t.id !== selectedTypeId);
+    
+    // Remove all items of this type
+    currentStockData.items = currentStockData.items.filter(i => i.typeId !== selectedTypeId);
+
+    currentStockData.lastUpdated = Date.now();
+    
+    await saveLocalData(currentStockData);
+    
+    renderTypes();
+    updateNotifier();
+    backToDashboard();   // Go back to dashboard after deletion
+}
+
 
 // Render items table
 function renderItemsTable() {
