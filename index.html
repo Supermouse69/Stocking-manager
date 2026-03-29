@@ -19,23 +19,16 @@
             </h1>
             
             <div id="status-notifier" class="px-6 py-3 rounded-3xl text-sm font-medium flex items-center gap-2 transition-all">
-                <!-- JS fills this -->
+                <!-- JS fills -->
             </div>
 
-            <div class="flex items-center gap-3">
-                <button onclick="exportData()" 
-                        class="bg-emerald-600 hover:bg-emerald-500 px-6 py-3 rounded-3xl font-medium flex items-center gap-2">
-                    📤 Export JSON
-                </button>
-                <label onclick="document.getElementById('import-input').click()" 
-                       class="bg-amber-600 hover:bg-amber-500 px-6 py-3 rounded-3xl font-medium flex items-center gap-2 cursor-pointer">
-                    📥 Import JSON
-                </label>
+            <div class="flex items-center gap-3 text-sm">
+                <button onclick="showTab(0)" id="tab-0" class="tab-btn px-5 py-2 rounded-3xl bg-emerald-600">Dashboard</button>
+                <button onclick="showTab(1)" id="tab-1" class="tab-btn px-5 py-2 rounded-3xl hover:bg-zinc-800">Shopping List</button>
+                <button onclick="exportData()" class="bg-emerald-600 hover:bg-emerald-500 px-6 py-3 rounded-3xl font-medium flex items-center gap-2">📤 Export</button>
+                <label onclick="document.getElementById('import-input').click()" class="bg-amber-600 hover:bg-amber-500 px-6 py-3 rounded-3xl font-medium flex items-center gap-2 cursor-pointer">📥 Import</label>
                 <input id="import-input" type="file" accept=".json" class="hidden" onchange="importData(event)">
-                <button onclick="loadFromRepo()" 
-                        class="bg-blue-600 hover:bg-blue-500 px-6 py-3 rounded-3xl font-medium">
-                    🔄 Load from Repo
-                </button>
+                <button onclick="loadFromRepo()" class="bg-blue-600 hover:bg-blue-500 px-6 py-3 rounded-3xl font-medium">🔄 Repo</button>
             </div>
         </div>
 
@@ -44,52 +37,102 @@
             <div class="w-80 border-r border-zinc-800 p-6 overflow-y-auto">
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-xl font-semibold">Stock Types</h2>
-                    <button onclick="showAddTypeModal()" 
-                            class="bg-zinc-800 hover:bg-zinc-700 px-5 py-2 rounded-3xl text-sm flex items-center gap-2">
-                        + Add Type
-                    </button>
+                    <button onclick="showAddTypeModal()" class="bg-zinc-800 hover:bg-zinc-700 px-5 py-2 rounded-3xl text-sm flex items-center gap-2">+ Type</button>
                 </div>
-                <ul id="types-list" class="space-y-2">
-                    <!-- JS populated -->
-                </ul>
+                <ul id="types-list" class="space-y-2"></ul>
             </div>
 
-            <!-- Main content -->
+            <!-- Main Area -->
             <div class="flex-1 p-8 overflow-y-auto">
-                <div id="dashboard-view">
-                    <h2 class="text-2xl font-semibold mb-4">Dashboard</h2>
-                    <div class="bg-zinc-900 rounded-3xl p-8 text-center">
-                        <p class="text-zinc-400 mb-4">✅ Types are working!</p>
-                        <p class="text-emerald-300">Add some stock types above.<br>Next step = items + custom fields + alerts</p>
-                    </div>
+                <!-- TAB 0: Dashboard -->
+                <div id="tab-content-0">
+                    <h2 class="text-2xl font-semibold mb-6">Dashboard</h2>
+                    <div id="alerts-box" class="grid grid-cols-2 gap-6 mb-8"></div>
+                    <p class="text-zinc-400 text-sm mb-4">Select a type on the left to manage items</p>
                 </div>
 
-                <!-- Items view (empty for now) -->
+                <!-- TAB 1: Shopping List -->
+                <div id="tab-content-1" class="hidden">
+                    <h2 class="text-2xl font-semibold mb-6">🛒 Shopping List</h2>
+                    <div id="shopping-list" class="space-y-4"></div>
+                    <button onclick="clearShoppingList()" class="mt-6 text-red-400 hover:text-red-300">Clear list</button>
+                </div>
+
+                <!-- Items View -->
                 <div id="items-view" class="hidden">
-                    <div class="flex justify-between mb-6">
+                    <div class="flex justify-between items-center mb-6">
                         <h2 id="current-type-name" class="text-2xl font-semibold"></h2>
-                        <button onclick="backToDashboard()" class="text-zinc-400 hover:text-white flex items-center gap-2">← Back to dashboard</button>
+                        <div class="flex gap-4">
+                            <button onclick="showAddCustomFieldModal()" class="text-emerald-400 hover:text-emerald-300 flex items-center gap-1">+ Custom Field</button>
+                            <button onclick="showAddItemModal()" class="bg-emerald-600 hover:bg-emerald-500 px-6 py-3 rounded-3xl">+ Add Item</button>
+                            <button onclick="backToDashboard()" class="text-zinc-400 hover:text-white">← Back</button>
+                        </div>
                     </div>
-                    <p class="text-zinc-400">Items & custom fields coming in step 2</p>
+                    
+                    <div id="custom-fields-display" class="mb-6 flex flex-wrap gap-2"></div>
+                    
+                    <table class="w-full bg-zinc-900 rounded-3xl overflow-hidden">
+                        <thead>
+                            <tr class="border-b border-zinc-700">
+                                <th class="px-6 py-4 text-left">Item Name</th>
+                                <th class="px-6 py-4 text-left">Qty</th>
+                                <th class="px-6 py-4 text-left">Status</th>
+                                <th class="px-6 py-4 text-left">Expiry</th>
+                                <th class="px-6 py-4 text-left">Location</th>
+                                <th class="px-6 py-4 text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="items-table-body" class="divide-y divide-zinc-700"></tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Add Type Modal -->
-    <div id="add-type-modal" onclick="if(event.target.id==='add-type-modal')hideAddTypeModal()" 
-         class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-        <div onclick="event.stopImmediatePropagation()" 
-             class="bg-zinc-900 rounded-3xl p-8 w-full max-w-md">
+    <!-- Modals -->
+    <!-- Add Type Modal (same as before) -->
+    <div id="add-type-modal" onclick="if(event.target.id==='add-type-modal')hideAddTypeModal()" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+        <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 rounded-3xl p-8 w-full max-w-md">
             <h3 class="text-2xl mb-6">New Stock Type</h3>
-            <input id="type-name-input" type="text" 
-                   class="w-full bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4 text-lg placeholder-zinc-500" 
-                   placeholder="e.g. Food, Medical, Weapons, Seeds...">
+            <input id="type-name-input" type="text" class="w-full bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4 text-lg" placeholder="e.g. Food, Medical...">
             <div class="flex gap-4 mt-8">
-                <button onclick="hideAddTypeModal()" 
-                        class="flex-1 py-4 bg-zinc-800 hover:bg-zinc-700 rounded-3xl">Cancel</button>
-                <button onclick="createNewType()" 
-                        class="flex-1 py-4 bg-emerald-600 hover:bg-emerald-500 rounded-3xl">Create Type</button>
+                <button onclick="hideAddTypeModal()" class="flex-1 py-4 bg-zinc-800 hover:bg-zinc-700 rounded-3xl">Cancel</button>
+                <button onclick="createNewType()" class="flex-1 py-4 bg-emerald-600 hover:bg-emerald-500 rounded-3xl">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Item Modal -->
+    <div id="add-item-modal" onclick="if(event.target.id==='add-item-modal')hideAddItemModal()" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+        <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 rounded-3xl p-8 w-full max-w-lg">
+            <h3 class="text-2xl mb-6">New Item</h3>
+            <input id="item-name" type="text" placeholder="Item name" class="w-full mb-4 bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4">
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <input id="item-qty" type="number" value="1" placeholder="Quantity" class="bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4">
+                <input id="item-expiry" type="date" class="bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4">
+            </div>
+            <input id="item-location" type="text" placeholder="Storage location (e.g. Basement B3)" class="w-full mb-4 bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4">
+            <select id="item-status" class="w-full mb-6 bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4">
+                <option value="Good">Good</option>
+                <option value="Low">Low</option>
+                <option value="Expired">Expired</option>
+            </select>
+            <div class="flex gap-4">
+                <button onclick="hideAddItemModal()" class="flex-1 py-4 bg-zinc-800 rounded-3xl">Cancel</button>
+                <button onclick="createNewItem()" class="flex-1 py-4 bg-emerald-600 rounded-3xl">Add Item</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Custom Field Modal -->
+    <div id="add-custom-field-modal" onclick="if(event.target.id==='add-custom-field-modal')hideAddCustomFieldModal()" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+        <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 rounded-3xl p-8 w-full max-w-md">
+            <h3 class="text-2xl mb-6">Add Custom Field to this Type</h3>
+            <input id="custom-field-name" type="text" placeholder="e.g. Power, Box Size, Calories" class="w-full mb-4 bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4">
+            <p class="text-xs text-zinc-400 mb-6">You can later add sub-fields under it (Power → battery type etc.)</p>
+            <div class="flex gap-4">
+                <button onclick="hideAddCustomFieldModal()" class="flex-1 py-4 bg-zinc-800 rounded-3xl">Cancel</button>
+                <button onclick="createCustomField()" class="flex-1 py-4 bg-emerald-600 rounded-3xl">Add Field</button>
             </div>
         </div>
     </div>
