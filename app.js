@@ -85,7 +85,6 @@ function renderTypes() {
     });
 }
 
-// Select a stock type and show its items
 function selectType(id) {
     selectedTypeId = id;
     const type = currentStockData.types.find(t => t.id === id);
@@ -93,7 +92,8 @@ function selectType(id) {
     document.getElementById("tab-content-0").classList.add("hidden");
     document.getElementById("tab-content-1").classList.add("hidden");
     document.getElementById("current-type-name").innerHTML = `📦 ${type.name}`;
-    renderCustomFields();
+    
+    renderGlobalCustomFields();   // Use global instead of per-type
     renderItemsTable();
 }
 
@@ -105,55 +105,7 @@ function backToDashboard() {
     renderAlerts();
 }
 
-// Render custom fields pills
-function renderCustomFields() {
-    const type = currentStockData.types.find(t => t.id === selectedTypeId);
-    const container = document.getElementById("custom-fields-display");
-    container.innerHTML = "";
-    if (!type.customFields || type.customFields.length === 0) {
-        container.innerHTML = `<span class="text-zinc-400 text-sm">No custom fields yet. Click "+ Custom Field"</span>`;
-        return;
-    }
-    type.customFields.forEach((field, i) => {
-        const pill = document.createElement("div");
-        pill.className = "bg-zinc-800 text-zinc-300 px-4 py-2 rounded-3xl text-sm flex items-center gap-2";
-        const subText = field.subFields && field.subFields.length ? ` (${field.subFields.join(", ")})` : "";
-        pill.innerHTML = `${field.name}${subText} <span onclick="deleteCustomField(${i}); event.stopImmediatePropagation()" class="text-red-400 cursor-pointer ml-2">×</span>`;
-        container.appendChild(pill);
-    });
-}
 
-async function createCustomField() {
-    const name = document.getElementById("custom-field-name").value.trim();
-    const subStr = document.getElementById("custom-subfields").value.trim();
-    
-    if (!name || !selectedTypeId) {
-        alert("Field name is required");
-        return;
-    }
-
-    const type = currentStockData.types.find(t => t.id === selectedTypeId);
-    if (!type.customFields) type.customFields = [];
-
-    // Prevent duplicates
-    const exists = type.customFields.some(f => f.name.toLowerCase() === name.toLowerCase());
-    if (exists) {
-        alert("This field name already exists! Choose a different name.");
-        return;
-    }
-
-    type.customFields.push({
-        name: name,
-        subFields: subStr ? subStr.split(",").map(s => s.trim()).filter(s => s.length > 0) : []
-    });
-    
-    currentStockData.lastUpdated = Date.now();
-    await saveLocalData(currentStockData);
-    
-    hideAddCustomFieldModal();
-    renderCustomFields();
-    updateNotifier();
-}
 
 function deleteCustomField(index) {
     if (!confirm("Delete this custom field?")) return;
@@ -295,11 +247,74 @@ function hideAddItemModal() {
     document.getElementById("add-item-modal").classList.add("hidden");
 }
 
-// Show add custom field modal
+// Create Global Custom Field
+async function createCustomField() {
+    const name = document.getElementById("custom-field-name").value.trim();
+    const subStr = document.getElementById("custom-subfields").value.trim();
+    
+    if (!name) {
+        alert("Field name is required");
+        return;
+    }
+
+    if (!currentStockData.globalCustomFields) currentStockData.globalCustomFields = [];
+
+    // Prevent duplicates globally
+    const exists = currentStockData.globalCustomFields.some(f => f.name.toLowerCase() === name.toLowerCase());
+    if (exists) {
+        alert("This field name already exists globally!");
+        return;
+    }
+
+    currentStockData.globalCustomFields.push({
+        name: name,
+        subFields: subStr ? subStr.split(",").map(s => s.trim()).filter(s => s.length > 0) : []
+    });
+    
+    currentStockData.lastUpdated = Date.now();
+    await saveLocalData(currentStockData);
+    
+    hideAddCustomFieldModal();
+    renderGlobalCustomFields();   // New function
+    updateNotifier();
+}
+
+// New: Render Global Custom Fields (show in the items view)
+function renderGlobalCustomFields() {
+    const container = document.getElementById("custom-fields-display");
+    container.innerHTML = "";
+    
+    if (!currentStockData.globalCustomFields || currentStockData.globalCustomFields.length === 0) {
+        container.innerHTML = `<span class="text-zinc-400 text-sm">No global custom fields yet. Click "+ Custom Field"</span>`;
+        return;
+    }
+
+    currentStockData.globalCustomFields.forEach((field, i) => {
+        const pill = document.createElement("div");
+        pill.className = "bg-zinc-800 text-zinc-300 px-4 py-2 rounded-3xl text-sm flex items-center gap-2";
+        const subText = field.subFields && field.subFields.length ? ` (${field.subFields.join(", ")})` : "";
+        pill.innerHTML = `${field.name}${subText} <span onclick="deleteGlobalCustomField(${i}); event.stopImmediatePropagation()" class="text-red-400 cursor-pointer ml-2">×</span>`;
+        container.appendChild(pill);
+    });
+}
+
+function deleteGlobalCustomField(index) {
+    if (!confirm("Delete this global custom field? It will affect all items.")) return;
+    
+    currentStockData.globalCustomFields.splice(index, 1);
+    currentStockData.lastUpdated = Date.now();
+    saveLocalData(currentStockData).then(() => {
+        renderGlobalCustomFields();
+        renderItemsTable();
+        updateNotifier();
+    });
+}
+
+// Update showAddCustomFieldModal to not require selectedTypeId
 function showAddCustomFieldModal() {
-    if (!selectedTypeId) return alert("Select a stock type first");
     document.getElementById("add-custom-field-modal").classList.remove("hidden");
 }
+
 function hideAddCustomFieldModal() {
     document.getElementById("add-custom-field-modal").classList.add("hidden");
 }
@@ -649,15 +664,17 @@ async function loadFromRepo() {
     }
 }
 
-// Create new stock type
 function createNewType() {
     const name = document.getElementById("type-name-input").value.trim();
-    if (!name) return;
+    if (!name) {
+        alert("Type name is required");
+        return;
+    }
     
     currentStockData.types.push({
         id: Date.now(),
         name: name,
-        customFields: []
+        customFields: []   // keep for backward compatibility
     });
     
     currentStockData.lastUpdated = Date.now();
@@ -667,6 +684,7 @@ function createNewType() {
         hideAddTypeModal();
     });
 }
+
 
 function hideAddTypeModal() {
     document.getElementById("add-type-modal").classList.add("hidden");
