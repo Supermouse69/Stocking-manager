@@ -477,34 +477,74 @@ function renderShoppingList() {
     });
 }
 
-// Export data to JSON
+// Fixed Export Function
 function exportData() {
-    const blob = new Blob([JSON.stringify(currentStockData, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "mystock.json";
-    a.click();
-    URL.revokeObjectURL(url);
+    if (!currentStockData || !currentStockData.types) {
+        alert("No data to export!");
+        return;
+    }
+
+    try {
+        const dataToExport = JSON.parse(JSON.stringify(currentStockData)); // deep copy to be safe
+        const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { 
+            type: "application/json" 
+        });
+        
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `mystock_${new Date().toISOString().slice(0,10)}.json`;
+        a.click();
+        
+        URL.revokeObjectURL(url);
+        
+        // Show success message but DO NOT clear data
+        const notifier = document.getElementById("status-notifier");
+        const originalText = notifier.innerHTML;
+        notifier.innerHTML = `✅ Exported successfully!`;
+        notifier.className = "px-6 py-3 rounded-3xl text-sm font-medium flex items-center gap-2 bg-emerald-900 text-emerald-300";
+        
+        setTimeout(() => {
+            notifier.innerHTML = originalText;
+        }, 2000);
+        
+    } catch (err) {
+        console.error("Export error:", err);
+        alert("Export failed. Please try again.");
+    }
 }
 
-// Import data from JSON
 async function importData(e) {
     const file = e.target.files[0];
     if (!file) return;
+    
     const reader = new FileReader();
-    reader.onload = async ev => {
+    reader.onload = async (ev) => {
         try {
             const imported = JSON.parse(ev.target.result);
+            
+            if (!imported.types || !Array.isArray(imported.types)) {
+                alert("Invalid stock file format");
+                return;
+            }
+            
             if (!imported.lastUpdated) imported.lastUpdated = Date.now();
+            
             currentStockData = imported;
             await saveLocalData(currentStockData);
+            
             renderTypes();
-            updateNotifier();
+            if (selectedTypeId) {
+                renderItemsTable();
+                renderCustomFields();
+            }
             renderAlerts();
+            updateNotifier();
+            
             alert("✅ Import successful!");
-        } catch {
-            alert("❌ Invalid JSON file");
+        } catch (err) {
+            console.error(err);
+            alert("❌ Invalid JSON file or corrupted data");
         }
     };
     reader.readAsText(file);
