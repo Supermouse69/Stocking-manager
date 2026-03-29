@@ -13,44 +13,45 @@
 <body class="bg-zinc-950 text-white min-h-screen font-sans">
     <div class="max-w-7xl mx-auto">
         <!-- Header -->
-        <div class="flex items-center justify-between border-b border-zinc-800 p-4 sticky top-0 bg-zinc-950 z-10">
-            <h1 class="text-3xl font-bold flex items-center gap-3">
+        <div class="flex items-center justify-between border-b border-zinc-800 p-4 sticky top-0 bg-zinc-950 z-50">
+            <h1 class="text-2xl md:text-3xl font-bold flex items-center gap-3">
                 📦 Stock Organizer 
                 <span class="text-xs bg-emerald-900 text-emerald-300 px-3 py-1 rounded-3xl">bad times ready</span>
             </h1>
             
-            <div id="status-notifier" class="px-6 py-3 rounded-3xl text-sm font-medium flex items-center gap-2 transition-all"></div>
+            <div id="status-notifier" class="hidden md:flex px-6 py-3 rounded-3xl text-sm font-medium items-center gap-2"></div>
 
-            <div class="flex items-center gap-3 text-sm">
-                <button onclick="showTab(0)" id="tab-0" class="tab-btn px-5 py-2 rounded-3xl bg-emerald-600">Dashboard</button>
-                <button onclick="showTab(1)" id="tab-1" class="tab-btn px-5 py-2 rounded-3xl hover:bg-zinc-800">🛒 Shopping</button>
-                <button onclick="exportData()" class="bg-emerald-600 hover:bg-emerald-500 px-6 py-3 rounded-3xl flex items-center gap-2">📤 Export</button>
-                <label onclick="document.getElementById('import-input').click()" class="bg-amber-600 hover:bg-amber-500 px-6 py-3 rounded-3xl flex items-center gap-2 cursor-pointer">📥 Import</label>
-                <input id="import-input" type="file" accept=".json" class="hidden" onchange="importData(event)">
-                <button onclick="loadFromRepo()" class="bg-blue-600 hover:bg-blue-500 px-6 py-3 rounded-3xl">🔄 Repo</button>
+            <div class="flex items-center gap-3">
+                <button onclick="toggleSidebar()" id="mobile-menu-btn"
+                        class="md:hidden bg-zinc-800 hover:bg-zinc-700 p-3 rounded-3xl">
+                    ☰
+                </button>
+                <button onclick="showTab(0)" id="tab-0" class="tab-btn px-4 py-2 rounded-3xl bg-emerald-600 text-sm md:text-base">Dashboard</button>
+                <button onclick="showTab(1)" id="tab-1" class="tab-btn px-4 py-2 rounded-3xl hover:bg-zinc-800 text-sm md:text-base">🛒 Shopping</button>
+                <button onclick="exportData()" class="bg-emerald-600 hover:bg-emerald-500 px-5 py-3 rounded-3xl flex items-center gap-2 text-sm">📤</button>
             </div>
         </div>
 
-        <div class="flex h-[calc(100vh-73px)]">
-            <!-- Sidebar: Stock Types -->
-            <div class="w-80 border-r border-zinc-800 p-6 overflow-y-auto">
+        <div class="flex flex-col md:flex-row h-[calc(100vh-73px)] overflow-hidden">
+            <!-- Sidebar - hidden on mobile by default, shown via toggle -->
+            <div id="sidebar" class="w-full md:w-80 border-b md:border-r border-zinc-800 bg-zinc-950 md:bg-transparent p-6 md:p-6 overflow-y-auto md:block hidden">
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-xl font-semibold">Stock Types</h2>
                     <button onclick="showAddTypeModal()" 
-                            class="bg-zinc-800 hover:bg-zinc-700 px-5 py-2 rounded-3xl text-sm flex items-center gap-2">+ Type</button>
+                            class="bg-zinc-800 hover:bg-zinc-700 px-5 py-2 rounded-3xl text-sm">+ Type</button>
                 </div>
                 <ul id="types-list" class="space-y-2"></ul>
             </div>
 
             <!-- Main Content -->
-            <div class="flex-1 p-8 overflow-y-auto">
-                <!-- Dashboard Tab -->
+            <div class="flex-1 p-4 md:p-8 overflow-y-auto">
+                <!-- Dashboard -->
                 <div id="tab-content-0">
                     <h2 class="text-2xl font-semibold mb-6">Dashboard</h2>
-                    <div id="alerts-box" class="grid grid-cols-2 gap-6"></div>
+                    <div id="alerts-box" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
                 </div>
 
-                <!-- Shopping List Tab -->
+                <!-- Shopping List -->
                 <div id="tab-content-1" class="hidden">
                     <h2 class="text-2xl font-semibold mb-6">🛒 Shopping List</h2>
                     <div id="shopping-list" class="space-y-4"></div>
@@ -58,30 +59,32 @@
 
                 <!-- Items View -->
                 <div id="items-view" class="hidden">
-                    <div class="flex justify-between items-center mb-6">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                         <h2 id="current-type-name" class="text-2xl font-semibold"></h2>
-                        <div class="flex gap-4">
-                            <button onclick="showAddCustomFieldModal()" class="text-emerald-400 hover:text-emerald-300">+ Custom Field</button>
-                            <button onclick="showAddItemModal()" class="bg-emerald-600 hover:bg-emerald-500 px-6 py-3 rounded-3xl">+ Add Item</button>
-                            <button onclick="backToDashboard()" class="text-zinc-400 hover:text-white">← Back</button>
+                        <div class="flex flex-wrap gap-3">
+                            <button onclick="showAddCustomFieldModal()" class="text-emerald-400 hover:text-emerald-300 text-sm">+ Custom Field</button>
+                            <button onclick="showAddItemModal()" class="bg-emerald-600 hover:bg-emerald-500 px-6 py-3 rounded-3xl text-sm">+ Add Item</button>
+                            <button onclick="backToDashboard()" class="text-zinc-400 hover:text-white text-sm">← Back</button>
                         </div>
                     </div>
                     
                     <div id="custom-fields-display" class="mb-6 flex flex-wrap gap-2"></div>
                     
-                    <table class="w-full bg-zinc-900 rounded-3xl overflow-hidden">
-                        <thead>
-                            <tr class="border-b border-zinc-700">
-                                <th class="px-6 py-4 text-left">Item Name</th>
-                                <th class="px-6 py-4 text-left">Qty</th>
-                                <th class="px-6 py-4 text-left">Status</th>
-                                <th class="px-6 py-4 text-left">Expiry</th>
-                                <th class="px-6 py-4 text-left">Location</th>
-                                <th class="px-6 py-4 text-center">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="items-table-body" class="divide-y divide-zinc-700"></tbody>
-                    </table>
+                    <div class="overflow-x-auto">
+                        <table class="w-full bg-zinc-900 rounded-3xl overflow-hidden min-w-full">
+                            <thead>
+                                <tr class="border-b border-zinc-700">
+                                    <th class="px-4 py-4 text-left">Name</th>
+                                    <th class="px-4 py-4 text-left">Qty</th>
+                                    <th class="px-4 py-4 text-left">Status</th>
+                                    <th class="px-4 py-4 text-left">Expiry</th>
+                                    <th class="px-4 py-4 text-left hidden md:table-cell">Location</th>
+                                    <th class="px-4 py-4 text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="items-table-body" class="divide-y divide-zinc-700"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
