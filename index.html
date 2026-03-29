@@ -12,10 +12,16 @@
 </head>
 <body class="bg-zinc-950 text-white min-h-screen font-sans">
     <div class="max-w-7xl mx-auto">
+        <!-- Header -->
         <div class="flex items-center justify-between border-b border-zinc-800 p-4 sticky top-0 bg-zinc-950 z-10">
-            <h1 class="text-3xl font-bold flex items-center gap-3">📦 Stock Organizer <span class="text-xs bg-emerald-900 text-emerald-300 px-3 py-1 rounded-3xl">bad times ready</span></h1>
-            <div id="status-notifier" class="px-6 py-3 rounded-3xl text-sm font-medium flex items-center gap-2"></div>
-            <div class="flex items-center gap-3">
+            <h1 class="text-3xl font-bold flex items-center gap-3">
+                📦 Stock Organizer 
+                <span class="text-xs bg-emerald-900 text-emerald-300 px-3 py-1 rounded-3xl">bad times ready</span>
+            </h1>
+            
+            <div id="status-notifier" class="px-6 py-3 rounded-3xl text-sm font-medium flex items-center gap-2 transition-all"></div>
+
+            <div class="flex items-center gap-3 text-sm">
                 <button onclick="showTab(0)" id="tab-0" class="tab-btn px-5 py-2 rounded-3xl bg-emerald-600">Dashboard</button>
                 <button onclick="showTab(1)" id="tab-1" class="tab-btn px-5 py-2 rounded-3xl hover:bg-zinc-800">🛒 Shopping</button>
                 <button onclick="exportData()" class="bg-emerald-600 hover:bg-emerald-500 px-6 py-3 rounded-3xl flex items-center gap-2">📤 Export</button>
@@ -26,65 +32,140 @@
         </div>
 
         <div class="flex h-[calc(100vh-73px)]">
+            <!-- Sidebar: Stock Types -->
             <div class="w-80 border-r border-zinc-800 p-6 overflow-y-auto">
-                <div class="flex justify-between mb-6"><h2 class="text-xl font-semibold">Stock Types</h2><button onclick="showAddTypeModal()" class="bg-zinc-800 hover:bg-zinc-700 px-5 py-2 rounded-3xl text-sm">+ Type</button></div>
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-semibold">Stock Types</h2>
+                    <button onclick="showAddTypeModal()" 
+                            class="bg-zinc-800 hover:bg-zinc-700 px-5 py-2 rounded-3xl text-sm flex items-center gap-2">+ Type</button>
+                </div>
                 <ul id="types-list" class="space-y-2"></ul>
             </div>
 
+            <!-- Main Content -->
             <div class="flex-1 p-8 overflow-y-auto">
-                <div id="tab-content-0"><h2 class="text-2xl font-semibold mb-6">Dashboard</h2><div id="alerts-box" class="grid grid-cols-2 gap-6"></div></div>
-                <div id="tab-content-1" class="hidden"><h2 class="text-2xl font-semibold mb-6">🛒 Shopping List</h2><div id="shopping-list" class="space-y-4"></div></div>
+                <!-- Dashboard Tab -->
+                <div id="tab-content-0">
+                    <h2 class="text-2xl font-semibold mb-6">Dashboard</h2>
+                    <div id="alerts-box" class="grid grid-cols-2 gap-6"></div>
+                </div>
+
+                <!-- Shopping List Tab -->
+                <div id="tab-content-1" class="hidden">
+                    <h2 class="text-2xl font-semibold mb-6">🛒 Shopping List</h2>
+                    <div id="shopping-list" class="space-y-4"></div>
+                </div>
+
+                <!-- Items View -->
                 <div id="items-view" class="hidden">
-                    <div class="flex justify-between mb-6">
+                    <div class="flex justify-between items-center mb-6">
                         <h2 id="current-type-name" class="text-2xl font-semibold"></h2>
-                        <div><button onclick="showAddCustomFieldModal()" class="text-emerald-400 mr-4">+ Custom Field</button><button onclick="showAddItemModal()" class="bg-emerald-600 px-6 py-3 rounded-3xl">+ Item</button><button onclick="backToDashboard()" class="ml-4 text-zinc-400">← Back</button></div>
+                        <div class="flex gap-4">
+                            <button onclick="showAddCustomFieldModal()" class="text-emerald-400 hover:text-emerald-300">+ Custom Field</button>
+                            <button onclick="showAddItemModal()" class="bg-emerald-600 hover:bg-emerald-500 px-6 py-3 rounded-3xl">+ Add Item</button>
+                            <button onclick="backToDashboard()" class="text-zinc-400 hover:text-white">← Back</button>
+                        </div>
                     </div>
+                    
                     <div id="custom-fields-display" class="mb-6 flex flex-wrap gap-2"></div>
-                    <table class="w-full bg-zinc-900 rounded-3xl overflow-hidden"><thead><tr class="border-b border-zinc-700"><th class="px-6 py-4 text-left">Name</th><th class="px-6 py-4 text-left">Qty</th><th class="px-6 py-4 text-left">Status</th><th class="px-6 py-4 text-left">Expiry</th><th class="px-6 py-4 text-left">Location</th><th class="px-6 py-4 text-center">Actions</th></tr></thead><tbody id="items-table-body" class="divide-y divide-zinc-700"></tbody></table>
+                    
+                    <table class="w-full bg-zinc-900 rounded-3xl overflow-hidden">
+                        <thead>
+                            <tr class="border-b border-zinc-700">
+                                <th class="px-6 py-4 text-left">Item Name</th>
+                                <th class="px-6 py-4 text-left">Qty</th>
+                                <th class="px-6 py-4 text-left">Status</th>
+                                <th class="px-6 py-4 text-left">Expiry</th>
+                                <th class="px-6 py-4 text-left">Location</th>
+                                <th class="px-6 py-4 text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="items-table-body" class="divide-y divide-zinc-700"></tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modals -->
-    <div id="add-type-modal" onclick="if(event.target.id==='add-type-modal')hideAddTypeModal()" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+    <!-- Add Type Modal -->
+    <div id="add-type-modal" onclick="if(event.target.id==='add-type-modal')hideAddTypeModal()" 
+         class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50">
         <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 rounded-3xl p-8 w-full max-w-md">
             <h3 class="text-2xl mb-6">New Stock Type</h3>
-            <input id="type-name-input" type="text" class="w-full bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4 text-lg" placeholder="Food / Medical / Weapons...">
-            <div class="flex gap-4 mt-8"><button onclick="hideAddTypeModal()" class="flex-1 py-4 bg-zinc-800 rounded-3xl">Cancel</button><button onclick="createNewType()" class="flex-1 py-4 bg-emerald-600 rounded-3xl">Create</button></div>
+            <input id="type-name-input" type="text" 
+                   class="w-full bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4 text-lg placeholder-zinc-500" 
+                   placeholder="e.g. Food, Medical, Weapons, Seeds...">
+            <div class="flex gap-4 mt-8">
+                <button onclick="hideAddTypeModal()" class="flex-1 py-4 bg-zinc-800 hover:bg-zinc-700 rounded-3xl">Cancel</button>
+                <button onclick="createNewType()" class="flex-1 py-4 bg-emerald-600 hover:bg-emerald-500 rounded-3xl">Create Type</button>
+            </div>
         </div>
     </div>
 
-    <div id="add-item-modal" onclick="if(event.target.id==='add-item-modal')hideAddItemModal()" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+    <!-- Add Item Modal -->
+    <div id="add-item-modal" onclick="if(event.target.id==='add-item-modal')hideAddItemModal()" 
+         class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50">
         <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 rounded-3xl p-8 w-full max-w-lg">
             <h3 class="text-2xl mb-6">New Item</h3>
             <input id="item-name" type="text" placeholder="Item name" class="w-full mb-4 bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4">
-            <div class="grid grid-cols-2 gap-4 mb-4"><input id="item-qty" type="number" value="1" class="bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4"><input id="item-expiry" type="date" class="bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4"></div>
-            <input id="item-location" type="text" placeholder="Location (Basement B3)" class="w-full mb-4 bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4">
-            <select id="item-status" class="w-full mb-6 bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4"><option value="Good">Good</option><option value="Low">Low</option><option value="Expired">Expired</option></select>
-            <div class="flex gap-4"><button onclick="hideAddItemModal()" class="flex-1 py-4 bg-zinc-800 rounded-3xl">Cancel</button><button onclick="createNewItem()" class="flex-1 py-4 bg-emerald-600 rounded-3xl">Add Item</button></div>
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <input id="item-qty" type="number" value="1" placeholder="Quantity" class="bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4">
+                <input id="item-expiry" type="date" class="bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4">
+            </div>
+            <input id="item-location" type="text" placeholder="Storage location (e.g. Basement B3)" class="w-full mb-4 bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4">
+            <select id="item-status" class="w-full mb-6 bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4">
+                <option value="Good">Good</option>
+                <option value="Low">Low</option>
+                <option value="Expired">Expired</option>
+            </select>
+            <div class="flex gap-4">
+                <button onclick="hideAddItemModal()" class="flex-1 py-4 bg-zinc-800 rounded-3xl">Cancel</button>
+                <button onclick="createNewItem()" class="flex-1 py-4 bg-emerald-600 rounded-3xl">Add Item</button>
+            </div>
         </div>
     </div>
 
-    <div id="add-custom-field-modal" onclick="if(event.target.id==='add-custom-field-modal')hideAddCustomFieldModal()" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+    <!-- Add Custom Field Modal (with sub-fields) -->
+    <div id="add-custom-field-modal" onclick="if(event.target.id==='add-custom-field-modal')hideAddCustomFieldModal()" 
+         class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50">
         <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 rounded-3xl p-8 w-full max-w-md">
             <h3 class="text-2xl mb-6">Add Custom Field + Sub-fields</h3>
-            <input id="custom-field-name" type="text" placeholder="e.g. Power" class="w-full mb-4 bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4">
-            <input id="custom-subfields" type="text" placeholder="sub-fields (comma separated): battery type, off-grid runtime, has spares" class="w-full mb-6 bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4">
-            <div class="flex gap-4"><button onclick="hideAddCustomFieldModal()" class="flex-1 py-4 bg-zinc-800 rounded-3xl">Cancel</button><button onclick="createCustomField()" class="flex-1 py-4 bg-emerald-600 rounded-3xl">Add</button></div>
+            <input id="custom-field-name" type="text" placeholder="Field name (e.g. Power)" 
+                   class="w-full mb-4 bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4">
+            <input id="custom-subfields" type="text" placeholder="Sub-fields (comma separated): battery type, off-grid runtime, has spares" 
+                   class="w-full mb-6 bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4">
+            <div class="flex gap-4">
+                <button onclick="hideAddCustomFieldModal()" class="flex-1 py-4 bg-zinc-800 rounded-3xl">Cancel</button>
+                <button onclick="createCustomField()" class="flex-1 py-4 bg-emerald-600 rounded-3xl">Add Field</button>
+            </div>
         </div>
     </div>
 
-    <div id="edit-custom-modal" onclick="if(event.target.id==='edit-custom-modal')hideEditCustomModal()" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-        <div onclick="event.stopImmediatePropagation()" id="custom-form-container" class="bg-zinc-900 rounded-3xl p-8 w-full max-w-2xl max-h-[90vh] overflow-auto"></div>
+    <!-- Edit Custom Values Modal -->
+    <div id="edit-custom-modal" onclick="if(event.target.id==='edit-custom-modal')hideEditCustomModal()" 
+         class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+        <div onclick="event.stopImmediatePropagation()" id="custom-form-container" 
+             class="bg-zinc-900 rounded-3xl p-8 w-full max-w-2xl max-h-[90vh] overflow-auto"></div>
     </div>
 
-    <div id="history-modal" onclick="if(event.target.id==='history-modal')hideHistoryModal()" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-        <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 rounded-3xl p-8 w-full max-w-md"><h3 class="text-xl mb-4">Quantity History</h3><div id="history-list" class="space-y-2"></div><button onclick="hideHistoryModal()" class="mt-6 w-full py-4 bg-zinc-800 rounded-3xl">Close</button></div>
+    <!-- History Modal -->
+    <div id="history-modal" onclick="if(event.target.id==='history-modal')hideHistoryModal()" 
+         class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+        <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 rounded-3xl p-8 w-full max-w-md">
+            <h3 class="text-xl mb-4">Quantity History</h3>
+            <div id="history-list" class="space-y-2 max-h-96 overflow-auto"></div>
+            <button onclick="hideHistoryModal()" class="mt-6 w-full py-4 bg-zinc-800 rounded-3xl">Close</button>
+        </div>
     </div>
 
-    <div id="qr-modal" onclick="if(event.target.id==='qr-modal')hideQRModal()" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-        <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 rounded-3xl p-8 text-center"><h3 class="text-xl mb-4">QR Code</h3><div id="qr-container" class="mx-auto"></div><button onclick="hideQRModal()" class="mt-6 w-full py-4 bg-zinc-800 rounded-3xl">Close</button></div>
+    <!-- QR Modal -->
+    <div id="qr-modal" onclick="if(event.target.id==='qr-modal')hideQRModal()" 
+         class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+        <div onclick="event.stopImmediatePropagation()" class="bg-zinc-900 rounded-3xl p-8 text-center">
+            <h3 class="text-xl mb-4">QR Code for Item</h3>
+            <div id="qr-container" class="mx-auto mb-6"></div>
+            <button onclick="hideQRModal()" class="mt-6 w-full py-4 bg-zinc-800 rounded-3xl">Close</button>
+        </div>
     </div>
 
     <script src="app.js" defer></script>
