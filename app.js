@@ -236,6 +236,53 @@ function renderItemsTable() {
         return;
     }
 
+function searchItems() {
+    const query = document.getElementById("search-input").value.toLowerCase().trim();
+    if (!query) {
+        renderItemsTable();
+        return;
+    }
+
+    const tbody = document.getElementById("items-table-body");
+    tbody.innerHTML = "";
+
+    const filtered = currentStockData.items.filter(i => 
+        i.typeId === selectedTypeId && 
+        i.name.toLowerCase().includes(query)
+    );
+
+    if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-12 text-center text-zinc-400">No items found for "${query}"</td></tr>`;
+        return;
+    }
+
+    filtered.forEach(item => {
+        const tr = document.createElement("tr");
+        tr.className = "hover:bg-zinc-800 cursor-pointer";
+        tr.onclick = (e) => {
+            if (e.target.closest('button')) return;
+            showItemDetail(item.id);
+        };
+
+        const expiryClass = item.expiry && new Date(item.expiry) < new Date() ? "text-red-400" : "";
+
+        tr.innerHTML = `
+            <td class="px-6 py-4">${item.name}</td>
+            <td class="px-6 py-4 font-mono">${item.quantity}</td>
+            <td class="px-6 py-4">${item.status || '—'}</td>
+            <td class="px-6 py-4 ${expiryClass}">${item.expiry || '—'}</td>
+            <td class="px-6 py-4">${item.location || '—'}</td>
+            <td class="px-6 py-4 text-center">
+                <button onclick="showEditCustomModal(${item.id}); event.stopImmediatePropagation()" class="text-emerald-400 mr-3">✏️</button>
+                <button onclick="showHistoryModal(${item.id}); event.stopImmediatePropagation()" class="text-blue-400 mr-3">📜</button>
+                <button onclick="showQRModal(${item.id}); event.stopImmediatePropagation()" class="text-purple-400 mr-3">📱</button>
+                <button onclick="deleteItem(${item.id}); event.stopImmediatePropagation()" class="text-red-400">×</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}    
+
     items.forEach(item => {
         const tr = document.createElement("tr");
         tr.className = "hover:bg-zinc-800 cursor-pointer";
@@ -666,6 +713,7 @@ function renderAlerts() {
     if (expired.length === 0 && expiringSoon.length === 0) {
         box.innerHTML = `<div class="col-span-2 text-center py-12 text-zinc-400">No expiry alerts — good job!</div>`;
     }
+    renderTypeSummary();
 }
 
 // Tab switching
@@ -772,6 +820,8 @@ async function importData(e) {
             currentStockData = imported;
 
             await saveLocalData(currentStockData);
+
+            renderTypeSummary();
 
             // Refresh everything
             renderTypes();

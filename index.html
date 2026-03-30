@@ -92,6 +92,13 @@
                     
                     <div id="custom-fields-display" class="mb-6 flex flex-wrap gap-2"></div>
 
+                    <!-- Search Bar -->
+                    <div class="mb-6">
+                        <input id="search-input" type="text" placeholder="Search items..." 
+                               onkeyup="if(event.key === 'Enter') searchItems()"
+                               class="w-full bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4 text-base placeholder-zinc-500">
+                    </div>
+
                     <!-- Filter Bar -->
                     <div class="flex flex-wrap gap-2 mb-6 bg-zinc-900 p-3 rounded-3xl">
                         <button onclick="setFilter('newest')" id="filter-newest" class="filter-btn active px-5 py-2 rounded-3xl text-sm">Newest</button>
