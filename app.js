@@ -202,49 +202,86 @@ async function deleteCurrentStockType() {
 }
 
 
-// Render items table
+// Render items table - with default newest first + filter support
+let currentFilter = "newest";   // default: newest added on top
+
 function renderItemsTable() {
     const tbody = document.getElementById("items-table-body");
     tbody.innerHTML = "";
-    const filteredItems = currentStockData.items.filter(i => i.typeId === selectedTypeId);
-    
+
+    let filteredItems = currentStockData.items.filter(i => i.typeId === selectedTypeId);
+
+    // Apply sorting
+    if (currentFilter === "newest") {
+        filteredItems.sort((a, b) => b.id - a.id);           // newest first
+    } else if (currentFilter === "alphabetical") {
+        filteredItems.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (currentFilter === "expiry") {
+        filteredItems.sort((a, b) => {
+            if (!a.expiry) return 1;
+            if (!b.expiry) return -1;
+            return new Date(a.expiry) - new Date(b.expiry);
+        });
+    } else if (currentFilter === "lowqty") {
+        filteredItems.sort((a, b) => {
+            const qa = parseFloat(a.quantity) || 0;
+            const qb = parseFloat(b.quantity) || 0;
+            return qa - qb;
+        });
+    }
+
     if (filteredItems.length === 0) {
         tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-12 text-center text-zinc-400">No items yet — add one above</td></tr>`;
         return;
     }
-    
+
     filteredItems.forEach(item => {
         const tr = document.createElement("tr");
         tr.className = "hover:bg-zinc-800 cursor-pointer";
         tr.onclick = (e) => {
-            // If user clicked on action buttons, don't open detail
             if (e.target.closest('button')) return;
             showItemDetail(item.id);
         };
-        const expiryClass = item.expiry && new Date(item.expiry) < new Date(Date.now() + 30*86400000) ? "text-orange-400" : "";
-        
+
+        const expiryClass = item.expiry && new Date(item.expiry) < new Date() ? "text-red-400" : 
+                           (item.expiry && new Date(item.expiry) < new Date(Date.now() + 30*86400000) ? "text-orange-400" : "");
+
         tr.innerHTML = `
             <td class="px-6 py-4">${item.name}</td>
-
             <td class="px-6 py-4">
                 <button onclick="changeQty(${item.id}, -1)" class="px-3 text-lg">-</button>
                 <span class="font-mono mx-3">${item.quantity}</span>
                 <button onclick="changeQty(${item.id}, 1)" class="px-3 text-lg">+</button>
             </td>
-
             <td class="px-6 py-4">${item.status}</td>
-            <td class="px-6 py-4 ${expiryClass}">${item.expiry || '-'}</td>
-            <td class="px-6 py-4">${item.location || '-'}</td>
+            <td class="px-6 py-4 ${expiryClass}">${item.expiry || '—'}</td>
+            <td class="px-6 py-4">${item.location || '—'}</td>
             <td class="px-6 py-4 text-center">
-                <button onclick="showEditCustomModal(${item.id})" class="text-emerald-400 mr-3">✏️</button>
-                <button onclick="showHistoryModal(${item.id})" class="text-blue-400 mr-3">📜</button>
-                <button onclick="showQRModal(${item.id})" class="text-purple-400 mr-3">📱</button>
-                <button onclick="deleteItem(${item.id})" class="text-red-400">×</button>
+                <button onclick="showEditCustomModal(${item.id}); event.stopImmediatePropagation()" class="text-emerald-400 mr-3">✏️</button>
+                <button onclick="showHistoryModal(${item.id}); event.stopImmediatePropagation()" class="text-blue-400 mr-3">📜</button>
+                <button onclick="showQRModal(${item.id}); event.stopImmediatePropagation()" class="text-purple-400 mr-3">📱</button>
+                <button onclick="deleteItem(${item.id}); event.stopImmediatePropagation()" class="text-red-400">×</button>
             </td>
         `;
         tbody.appendChild(tr);
     });
 }
+
+
+function setFilter(filterType) {
+    currentFilter = filterType;
+    
+    // Update active button style
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active', 'bg-emerald-600', 'text-white');
+        if (btn.id === `filter-${filterType}`) {
+            btn.classList.add('active', 'bg-emerald-600', 'text-white');
+        }
+    });
+    
+    renderItemsTable();
+}
+
 
 // Create new item
 async function createNewItem() {

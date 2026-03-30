@@ -91,6 +91,18 @@
                     </div>
                     
                     <div id="custom-fields-display" class="mb-6 flex flex-wrap gap-2"></div>
+
+                                        <!-- Filter Bar -->
+                    <div class="flex flex-wrap gap-2 mb-6">
+                        <button onclick="setFilter('newest')" id="filter-newest" 
+                                class="filter-btn active px-5 py-2 rounded-3xl text-sm">Newest</button>
+                        <button onclick="setFilter('alphabetical')" id="filter-alphabetical" 
+                                class="filter-btn px-5 py-2 rounded-3xl text-sm">A-Z</button>
+                        <button onclick="setFilter('expiry')" id="filter-expiry" 
+                                class="filter-btn px-5 py-2 rounded-3xl text-sm">Expiry Soon</button>
+                        <button onclick="setFilter('lowqty')" id="filter-lowqty" 
+                                class="filter-btn px-5 py-2 rounded-3xl text-sm">Low Quantity</button>
+                    </div>
                     
                     <div class="overflow-x-auto">
                         <table class="w-full bg-zinc-900 rounded-3xl overflow-hidden min-w-full">

@@ -19,3 +19,8 @@ input:focus, select:focus {
     border-color: #10b981;
     box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
 }
+
+.filter-btn.active {
+    background-color: #10b981;
+    color: white;
+}
