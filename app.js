@@ -582,30 +582,40 @@ function hideQRModal() {
     document.getElementById("qr-modal").classList.add("hidden");
 }
 
-// Render alerts on dashboard
 function renderAlerts() {
     const box = document.getElementById("alerts-box");
     box.innerHTML = "";
-    
-    const expiring = currentStockData.items.filter(i => i.expiry && new Date(i.expiry) < new Date(Date.now() + 30 * 86400000));
-    const lowStock = currentStockData.items.filter(i => i.quantity < 3);
-    
-    if (expiring.length) {
-        box.innerHTML += `
-            <div class="bg-orange-950 border border-orange-400 rounded-3xl p-6">
-                <h3 class="text-orange-300 mb-3">⚠️ Expiring soon (${expiring.length})</h3>
-                <ul class="text-sm space-y-1">${expiring.map(i => `<li>${i.name} — ${i.expiry}</li>`).join('')}</ul>
-            </div>`;
-    }
-    if (lowStock.length) {
+
+    const now = new Date();
+
+    // Already expired
+    const expired = currentStockData.items.filter(i => i.expiry && new Date(i.expiry) < now);
+
+    // Expiring soon (next 30 days, but not already expired)
+    const expiringSoon = currentStockData.items.filter(i => {
+        if (!i.expiry) return false;
+        const expDate = new Date(i.expiry);
+        return expDate >= now && expDate < new Date(now.getTime() + 30*86400000);
+    });
+
+    if (expired.length > 0) {
         box.innerHTML += `
             <div class="bg-red-950 border border-red-400 rounded-3xl p-6">
-                <h3 class="text-red-300 mb-3">🔴 Low stock (${lowStock.length})</h3>
-                <ul class="text-sm space-y-1">${lowStock.map(i => `<li>${i.name} — only ${i.quantity} left</li>`).join('')}</ul>
+                <h3 class="text-red-300 mb-3">🚨 Already Expired (${expired.length})</h3>
+                <ul class="text-sm space-y-1">${expired.map(i => `<li>${i.name} — ${i.expiry}</li>`).join('')}</ul>
             </div>`;
     }
-    if (!box.innerHTML) {
-        box.innerHTML = `<div class="col-span-2 text-center py-12 text-zinc-400">No alerts right now — keep stacking 👍</div>`;
+
+    if (expiringSoon.length > 0) {
+        box.innerHTML += `
+            <div class="bg-orange-950 border border-orange-400 rounded-3xl p-6">
+                <h3 class="text-orange-300 mb-3">⚠️ Expiring Soon (${expiringSoon.length})</h3>
+                <ul class="text-sm space-y-1">${expiringSoon.map(i => `<li>${i.name} — ${i.expiry}</li>`).join('')}</ul>
+            </div>`;
+    }
+
+    if (expired.length === 0 && expiringSoon.length === 0) {
+        box.innerHTML = `<div class="col-span-2 text-center py-12 text-zinc-400">No expiry alerts — good job!</div>`;
     }
 }
 
@@ -692,38 +702,83 @@ function exportData() {
 async function importData(e) {
     const file = e.target.files[0];
     if (!file) return;
-    
+
     const reader = new FileReader();
     reader.onload = async (ev) => {
         try {
             const imported = JSON.parse(ev.target.result);
-            
-            if (!imported.types || !Array.isArray(imported.types)) {
-                alert("Invalid stock file format");
+
+            // Safety checks
+            if (!imported || typeof imported !== "object") {
+                alert("❌ Invalid JSON file");
                 return;
             }
-            
-            if (!imported.lastUpdated) imported.lastUpdated = Date.now();
-            
+
+            // Fill missing arrays if they don't exist
+            imported.types = imported.types || [];
+            imported.items = imported.items || [];
+            imported.globalCustomFields = imported.globalCustomFields || [];
+            imported.lastUpdated = imported.lastUpdated || Date.now();
+
             currentStockData = imported;
+
             await saveLocalData(currentStockData);
-            
+
+            // Refresh everything
             renderTypes();
+            renderGlobalCustomFields();   // important for global fields
+            renderAlerts();
+
             if (selectedTypeId) {
                 renderItemsTable();
-                renderCustomFields();
             }
-            renderAlerts();
+
             updateNotifier();
-            
-            alert("✅ Import successful!");
+
+            alert(`✅ Import successful!\n${imported.types.length} types • ${imported.items.length} items`);
+
         } catch (err) {
-            console.error(err);
-            alert("❌ Invalid JSON file or corrupted data");
+            console.error("Import error:", err);
+            alert("❌ Failed to import.\nThe file may be corrupted or in the wrong format.");
         }
     };
     reader.readAsText(file);
 }
+
+
+function renderTypeSummary() {
+    const container = document.getElementById("type-summary");
+    container.innerHTML = "";
+
+    currentStockData.types.forEach(type => {
+        const itemCount = currentStockData.items.filter(i => i.typeId === type.id).length;
+        const totalQty = currentStockData.items
+            .filter(i => i.typeId === type.id)
+            .reduce((sum, i) => sum + (parseFloat(i.quantity) || 0), 0);
+
+        const card = document.createElement("div");
+        card.className = "bg-zinc-900 rounded-3xl p-6 hover:bg-zinc-800 cursor-pointer";
+        card.innerHTML = `
+            <div class="flex justify-between">
+                <div>
+                    <p class="text-lg font-medium">${type.name}</p>
+                    <p class="text-sm text-zinc-400">${itemCount} items</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-3xl font-mono">${totalQty}</p>
+                    <p class="text-xs text-zinc-400">total qty</p>
+                </div>
+            </div>
+        `;
+        card.onclick = () => selectType(type.id);
+        container.appendChild(card);
+    });
+
+    if (currentStockData.types.length === 0) {
+        container.innerHTML = `<p class="text-zinc-400 col-span-full text-center py-8">No types yet</p>`;
+    }
+}
+
 
 // Load from repo data.json
 async function loadFromRepo() {
