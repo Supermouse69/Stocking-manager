@@ -7,6 +7,7 @@ let currentStockData = {
 let selectedTypeId = null;
 let selectedItemId = null;
 let db = null;
+let currentFilter = "newest";
 
 // Initialize IndexedDB
 async function initDB() {
@@ -202,40 +203,40 @@ async function deleteCurrentStockType() {
 }
 
 
-// Render items table - with default newest first + filter support
-let currentFilter = "newest";   // default: newest added on top
 
+
+// Render items table - with default newest first + filter support
 function renderItemsTable() {
     const tbody = document.getElementById("items-table-body");
     tbody.innerHTML = "";
 
-    let filteredItems = currentStockData.items.filter(i => i.typeId === selectedTypeId);
+    let items = currentStockData.items.filter(i => i.typeId === selectedTypeId);
 
     // Apply sorting
     if (currentFilter === "newest") {
-        filteredItems.sort((a, b) => b.id - a.id);           // newest first
+        items.sort((a, b) => b.id - a.id);           // newest first
     } else if (currentFilter === "alphabetical") {
-        filteredItems.sort((a, b) => a.name.localeCompare(b.name));
+        items.sort((a, b) => a.name.localeCompare(b.name));
     } else if (currentFilter === "expiry") {
-        filteredItems.sort((a, b) => {
+        items.sort((a, b) => {
             if (!a.expiry) return 1;
             if (!b.expiry) return -1;
             return new Date(a.expiry) - new Date(b.expiry);
         });
     } else if (currentFilter === "lowqty") {
-        filteredItems.sort((a, b) => {
-            const qa = parseFloat(a.quantity) || 0;
-            const qb = parseFloat(b.quantity) || 0;
+        items.sort((a, b) => {
+            const qa = parseFloat(a.quantity) || 9999;
+            const qb = parseFloat(b.quantity) || 9999;
             return qa - qb;
         });
     }
 
-    if (filteredItems.length === 0) {
+    if (items.length === 0) {
         tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-12 text-center text-zinc-400">No items yet — add one above</td></tr>`;
         return;
     }
 
-    filteredItems.forEach(item => {
+    items.forEach(item => {
         const tr = document.createElement("tr");
         tr.className = "hover:bg-zinc-800 cursor-pointer";
         tr.onclick = (e) => {
@@ -243,17 +244,13 @@ function renderItemsTable() {
             showItemDetail(item.id);
         };
 
-        const expiryClass = item.expiry && new Date(item.expiry) < new Date() ? "text-red-400" : 
+        const expiryClass = item.expiry && new Date(item.expiry) < new Date() ? "text-red-400 font-medium" : 
                            (item.expiry && new Date(item.expiry) < new Date(Date.now() + 30*86400000) ? "text-orange-400" : "");
 
         tr.innerHTML = `
             <td class="px-6 py-4">${item.name}</td>
-            <td class="px-6 py-4">
-                <button onclick="changeQty(${item.id}, -1)" class="px-3 text-lg">-</button>
-                <span class="font-mono mx-3">${item.quantity}</span>
-                <button onclick="changeQty(${item.id}, 1)" class="px-3 text-lg">+</button>
-            </td>
-            <td class="px-6 py-4">${item.status}</td>
+            <td class="px-6 py-4 font-mono">${item.quantity}</td>
+            <td class="px-6 py-4">${item.status || '—'}</td>
             <td class="px-6 py-4 ${expiryClass}">${item.expiry || '—'}</td>
             <td class="px-6 py-4">${item.location || '—'}</td>
             <td class="px-6 py-4 text-center">
@@ -265,6 +262,21 @@ function renderItemsTable() {
         `;
         tbody.appendChild(tr);
     });
+}
+
+
+function setFilter(filterType) {
+    currentFilter = filterType;
+    
+    // Highlight active filter button
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active', 'bg-emerald-600', 'text-white');
+        if (btn.id === `filter-${filterType}`) {
+            btn.classList.add('active', 'bg-emerald-600', 'text-white');
+        }
+    });
+    
+    renderItemsTable();
 }
 
 
@@ -1055,6 +1067,11 @@ function proceedWithExport() {
     hideCompareModal();
     downloadJSON();
 }
+
+
+
+
+
 
 // App initialization
 window.onload = async () => {
