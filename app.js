@@ -202,40 +202,6 @@ async function deleteCurrentStockType() {
     backToDashboard();   // Go back to dashboard after deletion
 }
 
-
-
-
-// Render items table - with default newest first + filter support
-function renderItemsTable() {
-    const tbody = document.getElementById("items-table-body");
-    tbody.innerHTML = "";
-
-    let items = currentStockData.items.filter(i => i.typeId === selectedTypeId);
-
-    // Apply sorting
-    if (currentFilter === "newest") {
-        items.sort((a, b) => b.id - a.id);           // newest first
-    } else if (currentFilter === "alphabetical") {
-        items.sort((a, b) => a.name.localeCompare(b.name));
-    } else if (currentFilter === "expiry") {
-        items.sort((a, b) => {
-            if (!a.expiry) return 1;
-            if (!b.expiry) return -1;
-            return new Date(a.expiry) - new Date(b.expiry);
-        });
-    } else if (currentFilter === "lowqty") {
-        items.sort((a, b) => {
-            const qa = parseFloat(a.quantity) || 9999;
-            const qb = parseFloat(b.quantity) || 9999;
-            return qa - qb;
-        });
-    }
-
-    if (items.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-12 text-center text-zinc-400">No items yet — add one above</td></tr>`;
-        return;
-    }
-
 function searchItems() {
     const query = document.getElementById("search-input").value.toLowerCase().trim();
     if (!query) {
@@ -281,7 +247,39 @@ function searchItems() {
         `;
         tbody.appendChild(tr);
     });
-}    
+}  
+
+
+// Render items table - with default newest first + filter support
+function renderItemsTable() {
+    const tbody = document.getElementById("items-table-body");
+    tbody.innerHTML = "";
+
+    let items = currentStockData.items.filter(i => i.typeId === selectedTypeId);
+
+    // Apply sorting
+    if (currentFilter === "newest") {
+        items.sort((a, b) => b.id - a.id);           // newest first
+    } else if (currentFilter === "alphabetical") {
+        items.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (currentFilter === "expiry") {
+        items.sort((a, b) => {
+            if (!a.expiry) return 1;
+            if (!b.expiry) return -1;
+            return new Date(a.expiry) - new Date(b.expiry);
+        });
+    } else if (currentFilter === "lowqty") {
+        items.sort((a, b) => {
+            const qa = parseFloat(a.quantity) || 9999;
+            const qb = parseFloat(b.quantity) || 9999;
+            return qa - qb;
+        });
+    }
+
+    if (items.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-12 text-center text-zinc-400">No items yet — add one above</td></tr>`;
+        return;
+    }  
 
     items.forEach(item => {
         const tr = document.createElement("tr");
