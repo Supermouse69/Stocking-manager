@@ -271,46 +271,68 @@ function exportToCSV() {
     URL.revokeObjectURL(url);
 }
 
-// Print the full list nicely (Mom can save as PDF or print)
+// Better Print / Save as PDF function
 function printList() {
-    const printContent = document.createElement("div");
-    printContent.innerHTML = `
-        <h1 style="text-align:center; font-family:sans-serif;">Stock Organizer - Full List</h1>
-        <p style="text-align:center; color:#666;">Generated on ${new Date().toLocaleDateString()}</p>
-        <table border="1" style="width:100%; border-collapse:collapse; margin-top:20px;">
-            <thead>
-                <tr style="background:#f0f0f0;">
-                    <th style="padding:8px;">Type</th>
-                    <th style="padding:8px;">Item Name</th>
-                    <th style="padding:8px;">Quantity</th>
-                    <th style="padding:8px;">Status</th>
-                    <th style="padding:8px;">Expiry</th>
-                    <th style="padding:8px;">Location</th>
-                </tr>
-            </thead>
-            <tbody>
+    let html = `
+        <html>
+        <head>
+            <title>Stock Organizer - Full List</title>
+            <style>
+                body { font-family: Arial, sans-serif; margin: 40px; }
+                h1 { text-align: center; }
+                table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                th, td { border: 1px solid #333; padding: 10px; text-align: left; }
+                th { background-color: #f0f0f0; }
+                .expired { color: red; font-weight: bold; }
+                .soon { color: orange; }
+            </style>
+        </head>
+        <body>
+            <h1>Stock Organizer - Full List</h1>
+            <p style="text-align:center; color:#666;">Generated on ${new Date().toLocaleDateString()}</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Item Name</th>
+                        <th>Quantity</th>
+                        <th>Status</th>
+                        <th>Expiry</th>
+                        <th>Location</th>
+                    </tr>
+                </thead>
+                <tbody>
     `;
 
     currentStockData.items.forEach(item => {
         const typeName = currentStockData.types.find(t => t.id === item.typeId)?.name || "—";
-        printContent.innerHTML += `
+        const expiryClass = item.expiry && new Date(item.expiry) < new Date() ? 'class="expired"' : 
+                           (item.expiry && new Date(item.expiry) < new Date(Date.now() + 30*86400000) ? 'class="soon"' : '');
+        
+        html += `
             <tr>
-                <td style="padding:8px;">${typeName}</td>
-                <td style="padding:8px;">${item.name || ''}</td>
-                <td style="padding:8px;">${item.quantity || ''}</td>
-                <td style="padding:8px;">${item.status || ''}</td>
-                <td style="padding:8px;">${item.expiry || '—'}</td>
-                <td style="padding:8px;">${item.location || '—'}</td>
+                <td>${typeName}</td>
+                <td>${item.name || ''}</td>
+                <td>${item.quantity || ''}</td>
+                <td>${item.status || '—'}</td>
+                <td ${expiryClass}>${item.expiry || '—'}</td>
+                <td>${item.location || '—'}</td>
             </tr>
         `;
     });
 
-    printContent.innerHTML += `</tbody></table>`;
+    html += `
+                </tbody>
+            </table>
+        </body>
+        </html>
+    `;
 
     const printWindow = window.open('', '_blank');
-    printWindow.document.write(printContent.innerHTML);
+    printWindow.document.write(html);
     printWindow.document.close();
-    printWindow.print();
+    printWindow.focus();
+    setTimeout(() => printWindow.print(), 500);   // small delay for better rendering
 }
 
 // Render items table - with default newest first + filter support
