@@ -248,10 +248,74 @@ function searchItems() {
         tbody.appendChild(tr);
     });
 }  
+// Export full list as CSV (opens perfectly in Excel)
+function exportToCSV() {
+    if (!currentStockData.items || currentStockData.items.length === 0) {
+        alert("No items to export");
+        return;
+    }
 
+    let csv = "Type,Item Name,Quantity,Status,Expiry,Location\n";
+
+    currentStockData.items.forEach(item => {
+        const typeName = currentStockData.types.find(t => t.id === item.typeId)?.name || "Unknown";
+        csv += `"${typeName}","${item.name || ''}","${item.quantity || ''}","${item.status || ''}","${item.expiry || ''}","${item.location || ''}"\n`;
+    });
+
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `stock_list_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+// Print the full list nicely (Mom can save as PDF or print)
+function printList() {
+    const printContent = document.createElement("div");
+    printContent.innerHTML = `
+        <h1 style="text-align:center; font-family:sans-serif;">Stock Organizer - Full List</h1>
+        <p style="text-align:center; color:#666;">Generated on ${new Date().toLocaleDateString()}</p>
+        <table border="1" style="width:100%; border-collapse:collapse; margin-top:20px;">
+            <thead>
+                <tr style="background:#f0f0f0;">
+                    <th style="padding:8px;">Type</th>
+                    <th style="padding:8px;">Item Name</th>
+                    <th style="padding:8px;">Quantity</th>
+                    <th style="padding:8px;">Status</th>
+                    <th style="padding:8px;">Expiry</th>
+                    <th style="padding:8px;">Location</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    currentStockData.items.forEach(item => {
+        const typeName = currentStockData.types.find(t => t.id === item.typeId)?.name || "—";
+        printContent.innerHTML += `
+            <tr>
+                <td style="padding:8px;">${typeName}</td>
+                <td style="padding:8px;">${item.name || ''}</td>
+                <td style="padding:8px;">${item.quantity || ''}</td>
+                <td style="padding:8px;">${item.status || ''}</td>
+                <td style="padding:8px;">${item.expiry || '—'}</td>
+                <td style="padding:8px;">${item.location || '—'}</td>
+            </tr>
+        `;
+    });
+
+    printContent.innerHTML += `</tbody></table>`;
+
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(printContent.innerHTML);
+    printWindow.document.close();
+    printWindow.print();
+}
 
 // Render items table - with default newest first + filter support
 function renderItemsTable() {
+    
     const tbody = document.getElementById("items-table-body");
     tbody.innerHTML = "";
 
@@ -299,7 +363,7 @@ function renderItemsTable() {
             <td class="px-6 py-4 ${expiryClass}">${item.expiry || '—'}</td>
             <td class="px-6 py-4">${item.location || '—'}</td>
             <td class="px-6 py-4 text-center">
-                <button onclick="showEditCustomModal(${item.id}); event.stopImmediatePropagation()" class="text-emerald-400 mr-3">✏️</button>
+                <button onclick="showFullEditModal(${item.id}); event.stopImmediatePropagation()" class="text-emerald-400 mr-3">✏️</button>
                 <button onclick="showHistoryModal(${item.id}); event.stopImmediatePropagation()" class="text-blue-400 mr-3">📜</button>
                 <button onclick="showQRModal(${item.id}); event.stopImmediatePropagation()" class="text-purple-400 mr-3">📱</button>
                 <button onclick="deleteItem(${item.id}); event.stopImmediatePropagation()" class="text-red-400">×</button>
@@ -309,6 +373,104 @@ function renderItemsTable() {
     });
 }
 
+// Show full edit modal
+function showFullEditModal(itemId) {
+    selectedItemId = itemId;
+    const item = currentStockData.items.find(i => i.id === itemId);
+    if (!item) return;
+
+    // Fill basic fields
+    document.getElementById("edit-item-name").value = item.name || "";
+    document.getElementById("edit-item-qty").value = item.quantity || "";
+    document.getElementById("edit-item-location").value = item.location || "";
+    document.getElementById("edit-item-status").value = item.status || "Good";
+    
+    const noExpiryCheck = document.getElementById("edit-no-expiry");
+    noExpiryCheck.checked = !item.expiry;
+    document.getElementById("edit-item-expiry").value = item.expiry || "";
+
+    // Build custom fields form
+    buildEditCustomForm(item);
+
+    document.getElementById("full-edit-modal").classList.remove("hidden");
+}
+
+function hideFullEditModal() {
+    document.getElementById("full-edit-modal").classList.add("hidden");
+}
+
+// Build dynamic custom fields in edit modal
+function buildEditCustomForm(item) {
+    const container = document.getElementById("edit-custom-fields-container");
+    container.innerHTML = "<h4 class='text-lg font-medium mb-4'>Custom Fields</h4>";
+
+    const fields = currentStockData.globalCustomFields || [];
+
+    fields.forEach(field => {
+        const div = document.createElement("div");
+        div.className = "mb-6";
+        div.innerHTML = `<label class="block text-emerald-300 mb-2">${field.name}</label>`;
+
+        if (field.subFields && field.subFields.length > 0) {
+            field.subFields.forEach(sub => {
+                const val = item.customValues && item.customValues[field.name] && item.customValues[field.name][sub] 
+                            ? item.customValues[field.name][sub] : "";
+                div.innerHTML += `
+                    <div class="mb-3">
+                        <span class="text-sm text-zinc-400">${sub}</span>
+                        <input type="text" id="edit-sub-${field.name}-${sub}" value="${val}" 
+                               class="w-full mt-1 bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-3">
+                    </div>`;
+            });
+        } else {
+            const val = item.customValues && item.customValues[field.name] ? item.customValues[field.name] : "";
+            div.innerHTML += `<input type="text" id="edit-main-${field.name}" value="${val}" 
+                                  class="w-full bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-3">`;
+        }
+        container.appendChild(div);
+    });
+}
+
+// Save full edit
+async function saveFullEdit() {
+    const item = currentStockData.items.find(i => i.id === selectedItemId);
+    if (!item) return;
+
+    item.name = document.getElementById("edit-item-name").value.trim();
+    item.quantity = document.getElementById("edit-item-qty").value.trim() || "1";
+    item.location = document.getElementById("edit-item-location").value.trim() || null;
+    item.status = document.getElementById("edit-item-status").value;
+
+    const noExpiry = document.getElementById("edit-no-expiry").checked;
+    item.expiry = noExpiry ? null : document.getElementById("edit-item-expiry").value || null;
+
+    // Save custom fields
+    item.customValues = item.customValues || {};
+    const fields = currentStockData.globalCustomFields || [];
+
+    fields.forEach(field => {
+        if (field.subFields && field.subFields.length > 0) {
+            item.customValues[field.name] = item.customValues[field.name] || {};
+            field.subFields.forEach(sub => {
+                const input = document.getElementById(`edit-sub-${field.name}-${sub}`);
+                if (input) item.customValues[field.name][sub] = input.value.trim();
+            });
+        } else {
+            const input = document.getElementById(`edit-main-${field.name}`);
+            if (input) {
+                const val = input.value.trim();
+                if (val) item.customValues[field.name] = val;
+            }
+        }
+    });
+
+    currentStockData.lastUpdated = Date.now();
+    await saveLocalData(currentStockData);
+
+    hideFullEditModal();
+    renderItemsTable();
+    updateNotifier();
+}
 
 function setFilter(filterType) {
     currentFilter = filterType;
@@ -348,7 +510,7 @@ async function createNewItem() {
         id: Date.now(),
         typeId: selectedTypeId,
         name: document.getElementById("item-name").value.trim(),
-        quantity: document.getElementById("item-qty").value.trim() || "1",
+        quantity: document.getElementById("item-qty").value.trim() || "1",   // ← Text quantity fixed
         status: document.getElementById("item-status").value,
         expiry: noExpiry ? null : document.getElementById("item-expiry").value || null,
         location: document.getElementById("item-location").value.trim() || null,
@@ -366,7 +528,6 @@ async function createNewItem() {
     renderAlerts();
     updateNotifier();
 }
-
 // Change quantity and log history Change quantity with note
 function changeQty(id, delta) {
     const item = currentStockData.items.find(i => i.id === id);

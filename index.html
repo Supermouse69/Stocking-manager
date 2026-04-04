@@ -14,6 +14,18 @@
     <div class="max-w-7xl mx-auto">
         <!-- Header -->
         <div class="flex items-center justify-between border-b border-zinc-800 p-4 sticky top-0 bg-zinc-950 z-50">
+                <button onclick="exportToCSV()" 
+                        class="bg-blue-600 hover:bg-blue-500 px-5 py-3 rounded-3xl flex items-center gap-2 text-sm md:text-base">
+                    📊 CSV
+                </button>
+                <button onclick="printList()" 
+                        class="bg-violet-600 hover:bg-violet-500 px-5 py-3 rounded-3xl flex items-center gap-2 text-sm md:text-base">
+                    🖨️ Print
+                </button>
+
+
+
+
             <h1 class="text-2xl md:text-3xl font-bold flex items-center gap-3">
                 📦 Stock Organizer 
                 <span class="text-xs bg-emerald-900 text-emerald-300 px-3 py-1 rounded-3xl">bad times ready</span>
@@ -204,13 +216,58 @@
         </div>
     </div>
 
-    <!-- Edit Custom Values Modal -->
+    <!-- Edit Custom Values Modal 
     <div id="edit-custom-modal" onclick="if(event.target.id==='edit-custom-modal')hideEditCustomModal()" 
          class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50">
         <div onclick="event.stopImmediatePropagation()" id="custom-form-container" 
              class="bg-zinc-900 rounded-3xl p-8 w-full max-w-2xl max-h-[90vh] overflow-auto"></div>
     </div>
 
+    -->
+        <!-- Full Edit Item Modal (All fields) -->
+    <div id="full-edit-modal" onclick="if(event.target.id==='full-edit-modal')hideFullEditModal()" 
+         class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+        <div onclick="event.stopImmediatePropagation()" 
+             class="bg-zinc-900 rounded-3xl p-8 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            
+            <h3 class="text-2xl font-semibold mb-6">Edit Item</h3>
+            
+            <input id="edit-item-name" type="text" class="w-full mb-4 bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4" placeholder="Item name">
+            
+            <div class="mb-4">
+                <label class="block text-zinc-400 text-sm mb-2">Quantity (can be text)</label>
+                <input id="edit-item-qty" type="text" class="w-full bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4">
+            </div>
+
+            <div class="mb-6">
+                <label class="flex items-center gap-2 text-zinc-400 text-sm mb-3">
+                    <input id="edit-no-expiry" type="checkbox" class="w-5 h-5 accent-emerald-600">
+                    No Expiry
+                </label>
+                <input id="edit-item-expiry" type="date" class="w-full bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4">
+            </div>
+
+            <input id="edit-item-location" type="text" placeholder="Storage location" 
+                   class="w-full mb-4 bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4">
+
+            <select id="edit-item-status" class="w-full mb-6 bg-zinc-800 border border-zinc-700 rounded-3xl px-6 py-4">
+                <option value="Good">Good</option>
+                <option value="Low_Stock">Low Stock</option>
+                <option value="Expired">Expired</option>
+                <option value="Out_of_Stock">Out of Stock</option>
+            </select>
+
+            <!-- Custom fields will be dynamically added here -->
+            <div id="edit-custom-fields-container" class="mb-8"></div>
+
+            <div class="flex gap-4">
+                <button onclick="hideFullEditModal()" class="flex-1 py-4 bg-zinc-800 rounded-3xl">Cancel</button>
+                <button onclick="saveFullEdit()" class="flex-1 py-4 bg-emerald-600 rounded-3xl">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    
     <!-- History Modal -->
     <div id="history-modal" onclick="if(event.target.id==='history-modal')hideHistoryModal()" 
          class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50">
